@@ -17,21 +17,21 @@ class RolePermission(models.Model):
     role = models.ForeignKey(Role, on_delete=models.CASCADE)
     permission = models.ForeignKey(Permission, on_delete=models.CASCADE)
 
-# --- 2. Users & Authentication ---
-class User(models.Model):
-    name = models.CharField(max_length=200)
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=255)
-    status = models.IntegerField(default=1)
+class User(AbstractUser):
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     address = models.TextField(blank=True, null=True)
-    role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True)
-    activation_token = models.CharField(max_length=255, blank=True, null=True)
     google_id = models.CharField(max_length=255, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    activation_token = models.CharField(max_length=255, blank=True, null=True)
+    reset_token = models.CharField(max_length=255, blank=True, null=True)
+    
+    role = models.ForeignKey('Role', on_delete=models.SET_NULL, null=True)
 
+    email = models.EmailField(unique=True)
+
+    def __str__(self):
+        return self.username
+    
 class ShippingAddress(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=200)
@@ -41,7 +41,6 @@ class ShippingAddress(models.Model):
     default = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
-# --- 3. Products & Categories ---
 class Category(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
@@ -75,7 +74,6 @@ class ProductImage(models.Model):
     def __str__(self):
         return self.product.name
 
-# --- 4. Orders & Transactions ---
 class Order(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     total_price = models.DecimalField(max_digits=12, decimal_places=2)

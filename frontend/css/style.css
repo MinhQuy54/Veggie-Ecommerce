@@ -531,3 +531,56 @@ body {
 .btn-veggie:hover {
     background-color: #133236;
 }
+
+/* Khối bao quanh icon person */
+.custom-dropdown {
+    position: relative;
+    padding-bottom: 10px;
+    /* Tạo vùng đệm để không mất hover */
+}
+
+/* Menu Logout */
+.custom-dropdown-menu {
+    position: absolute;
+    top: 120%;
+    /* Đẩy xuống thấp một chút để lúc hiện lên có cảm giác đang "bay" lên */
+    right: 0;
+    background-color: #fff;
+    list-style: none;
+    padding: 10px 0;
+    margin: 0;
+    min-width: 130px;
+    border: 1px solid #eee;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    /* Đổ bóng nhẹ cho sang */
+    z-index: 1000;
+
+    /* Hiệu ứng ẩn ban đầu */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    /* Đẩy xuống 20px */
+    transition: all 0.4s ease;
+    /* Thời gian chạy hiệu ứng là 0.4 giây */
+}
+
+/* Hiệu ứng khi Hover */
+.custom-dropdown:hover .custom-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    top: 100%;
+    /* Trả về vị trí chuẩn */
+    transform: translateY(0);
+    /* Trả về vị trí không bị đẩy */
+}
+
+.custom-dropdown-menu li a {
+    display: block;
+    padding: 10px 20px;
+    color: #333;
+    text-decoration: none;
+}
+
+.custom-dropdown-menu li a:hover {
+    color: #82B400;
+}
