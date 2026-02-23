@@ -41,6 +41,13 @@ class ShippingAddress(models.Model):
     default = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        if self.default:
+            ShippingAddress.objects.filter(user=self.user, default=True
+            ).exclude(pk=self.pk
+            ).update(default=False)
+        super(ShippingAddress, self).save(*args, **kwargs)
+
 class Category(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)

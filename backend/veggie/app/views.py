@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.decorators import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate
 
 import uuid
@@ -192,3 +193,80 @@ class ResetPasswordConfirmView(APIView):
         return Response(
             {"message": "Đổi mật khẩu thành công"},
             status=status.HTTP_200_OK)
+
+class UserList(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class UserDetail(APIView):
+    permission_classes = [IsAuthenticated]
+    def put(self, request):
+        user = request.user
+        current_password = request.data.get('current_password')
+        new_password = request.data.get('new_password')
+        
+        if current_password and new_password:
+            if not user.check_password(current_password):
+                return Response({"error": "Mật khẩu hiện tại không chính xác"}, status=status.HTTP_400_BAD_REQUEST)
+            user.set_password(new_password)
+            user.save()
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # def get_obj(self, request, pk):
+    #     try:
+    #         return User.objects.get(pk=pk)
+    #     except User.DoesNotExist:
+    #         raise Http404()
+        
+    # def put(self, request, pk):
+    #     user = self.get_obj(pk=pk)
+    #     serializer = UserSerializer(user, data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(serializer.data)
+    #     return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+
+
+class AddressList(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        address = ShippingAddress.objects.filter(user=request.user)
+        serializer = ShippingAddressSerializer(address,many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    def post(self, request):
+        serializer = ShippingAddressSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)   
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)    
+    
+class AddressDetail(APIView):
+    permission_classes = [IsAuthenticated]
+    def get_obj(self, pk):
+        try:
+            return ShippingAddress.objects.get(pk=pk)
+        except ShippingAddress.DoesNotExist:
+            raise Http404()
+    def get(self, request, pk):
+        address = self.get_obj(pk)
+        serializer = ShippingAddressSerializer(address)
+        return Response(serializer.data)
+    def put(self, request,pk):
+        address = self.get_obj(pk)
+        serializer = ShippingAddressSerializer(address,data=request.data)
+
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data)
+        return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, requst,pk):
+        address = self.get_obj(pk)
+        address.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

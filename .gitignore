@@ -1,20 +1,24 @@
-# Python
-__pycache__/
+
 *.py[cod]
 *$py.class
-venv/
-env/
-.env
 
-# Django
+env/
+env*/
+venv*/
+ENV/
+.virtualenv/
+
+.env
+backend/.env
+*.env
+
 db.mysql
 media/
 staticfiles/
+*.log
 
-# IDEs
-.vscode/
 .idea/
 
-# OS
+
 .DS_Store
 Thumbs.db

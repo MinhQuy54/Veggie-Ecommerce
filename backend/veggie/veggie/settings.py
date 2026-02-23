@@ -2,14 +2,15 @@ import environ
 from pathlib import Path
 from datetime import timedelta
 
-# Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Khởi tạo environ và đọc file .env
-env = environ.Env(DEBUG=(bool, False))
+
+env = environ.Env(
+    DEBUG=(bool, False)
+)
+
 environ.Env.read_env(BASE_DIR / '.env')
 
-# SECURITY WARNING
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env('DEBUG')
 
@@ -108,6 +109,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+
 }
 
 AUTHENTICATION_BACKENDS = [

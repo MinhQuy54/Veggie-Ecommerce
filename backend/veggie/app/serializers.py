@@ -20,3 +20,14 @@ class ProductSerializer(serializers.ModelSerializer):
             'id', 'name', 'slug', 'category', 'category_name', 
             'description', 'price', 'stock', 'unit', 'images'
         ]
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name']
+
+class ShippingAddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShippingAddress
+        fields = '__all__'
+        read_only_fields = ['user']

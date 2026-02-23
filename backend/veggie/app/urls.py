@@ -9,5 +9,9 @@ urlpatterns = [
     path('auth/register/', RegisterView.as_view()),
     path('auth/activate/<str:token>/', ActivateAccountView.as_view()),
     path('auth/reset-password/', RequestResetPasswordView.as_view()),
-    path('auth/reset-password-confirm/', ResetPasswordConfirmView.as_view())
+    path('auth/reset-password-confirm/', ResetPasswordConfirmView.as_view()),
+    path('user/', UserList.as_view()),
+    path('user/update/', UserDetail.as_view()),
+    path('address/', AddressList.as_view()),
+    path('address/<int:pk>/',AddressDetail.as_view())
 ]
