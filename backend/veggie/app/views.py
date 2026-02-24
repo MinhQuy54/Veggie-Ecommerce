@@ -12,6 +12,10 @@ from django.contrib.auth import authenticate
 import uuid
 from django.core.mail import send_mail
 from django.conf import settings
+
+# pagination
+from .pagination import ProductPagination
+
 # Create your views here.
 
 class CateogoryList(APIView):
@@ -21,15 +25,38 @@ class CateogoryList(APIView):
         return Response(serializer.data)
     
 class ProductList(APIView):
-    def get(self, requets):
-        category_id = requets.query_params.get('category_id')
-        if category_id:
-            products = Product.objects.filter(category_id=category_id)
-        else:
-            products = Product.objects.all()
-        serializer = ProductSerializer(products, many=True)
-        return Response(serializer.data)
+    def get(self, request):
+        category_id = request.query_params.get('category_id')
+        min_price = request.query_params.get('min_price')
+        max_price = request.query_params.get('max_price')
+        ordering = request.query_params.get('ordering')
+        products = Product.objects.all()
 
+        if category_id:
+            products = products.filter(category_id=category_id)
+
+        if min_price:
+            try:
+                products = products.filter(price__gte=float(min_price))
+            except ValueError:
+                pass
+        if max_price:
+            try:
+                products = products.filter(price__lte=float(max_price))
+            except ValueError:
+                pass
+
+        if ordering:
+            if ordering in ['price', '-price']:
+                products = products.order_by(ordering)
+
+        paginator = ProductPagination()
+        paginated_products = paginator.paginate_queryset(products, request)
+        serializer = ProductSerializer(paginated_products, many=True)
+        
+        # return Response(serializer.data)
+        return paginator.get_paginated_response(serializer.data)
+    
 class ProductImageList(APIView):
     def get(self, requets):
         product_img = ProductImage.objects.all()
