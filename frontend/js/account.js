@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const API_BASE = "http://localhost:8000/api";
     const token = localStorage.getItem("access_token");
 
     if (!token) {
@@ -22,9 +21,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // Biến trạng thái để biết đang Thêm mới hay Sửa
     let editingAddressId = null;
 
-    // --- 1. LẤY THÔNG TIN NGƯỜI DÙNG ---
     function fetchUserProfile() {
-        fetch(`${API_BASE}/user/`, {
+        fetch(`${CONFIG.API_BASE_URL}/api/user/`, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -51,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function fetchAddresses() {
-        fetch(`${API_BASE}/address/`, {
+        fetch(`${CONFIG.API_BASE_URL}/api/address/`, {
             method: "GET",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -88,17 +86,15 @@ document.addEventListener("DOMContentLoaded", function () {
             .catch(err => console.error("Address Load Error:", err));
     }
 
-    // (Đổ dữ liệu cũ vào Modal) ---
     window.updateAddress = function (id) {
         editingAddressId = id;
         modalTitle.innerText = "Cập nhật địa chỉ";
 
-        // Mở modal trước khi load để UX mượt
         const modalEl = document.getElementById('addressModal');
         const modalInstance = new bootstrap.Modal(modalEl);
         modalInstance.show();
 
-        fetch(`${API_BASE}/address/${id}/`, {
+        fetch(`${CONFIG.API_BASE_URL}/api/address/${id}/`, {
             method: "GET",
             headers: { "Authorization": `Bearer ${token}` }
         })
@@ -112,7 +108,6 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     };
 
-    // --- 4. LƯU ĐỊA CHỈ (DÙNG CHUNG CHO CẢ POST VÀ PUT) ---
     saveAddressBtn.addEventListener('click', function () {
         const payload = {
             full_name: document.getElementById('addr-name').value.trim(),
@@ -128,7 +123,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         const method = editingAddressId ? "PUT" : "POST";
-        const url = editingAddressId ? `${API_BASE}/address/${editingAddressId}/` : `${API_BASE}/address/`;
+        const url = editingAddressId ? `${CONFIG.API_BASE_URL}/api/address/${editingAddressId}/` : `${CONFIG.API_BASE_URL}/api/address/`;
 
         fetch(url, {
             method: method,
@@ -164,7 +159,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     window.deleteAddress = function (id) {
         if (confirm("Bạn có chắc muốn xóa địa chỉ này?")) {
-            fetch(`${API_BASE}/address/${id}/`, {
+            fetch(`${CONFIG.API_BASE_URL}/api/address/${id}/`, {
                 method: "DELETE",
                 headers: { "Authorization": `Bearer ${token}` }
             })
@@ -178,7 +173,6 @@ document.addEventListener("DOMContentLoaded", function () {
     accountForm.addEventListener("submit", function (e) {
         e.preventDefault();
 
-        // LẤY GIÁ TRỊ TỪ CÁC Ô INPUT (Bạn đang thiếu phần này)
         const currentPassword = document.getElementById('current-password').value;
         const newPassword = document.getElementById('new-password').value;
         const confirmPassword = document.getElementById('confirm-password').value;
@@ -204,7 +198,7 @@ document.addEventListener("DOMContentLoaded", function () {
             updateData['new_password'] = newPassword;
         }
 
-        fetch(`${API_BASE}/user/update/`, {
+        fetch(`${CONFIG.API_BASE_URL}/api/user/update/`, {
             method: "PUT",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -216,7 +210,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 const result = await res.json();
                 if (res.ok) {
                     alert("Cập nhật thông tin thành công!");
-                    // Xóa trống các ô mật khẩu sau khi đổi thành công
                     document.getElementById('current-password').value = "";
                     document.getElementById('new-password').value = "";
                     document.getElementById('confirm-password').value = "";

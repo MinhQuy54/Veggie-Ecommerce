@@ -1,5 +1,3 @@
-const API_BASE = "http://localhost:8000/api";
-
 document.getElementById('registerForm').addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -11,7 +9,7 @@ document.getElementById('registerForm').addEventListener("submit", async (e) => 
     };
 
     try {
-        const res = await fetch(`${API_BASE}/auth/register/`, {
+        const res = await fetch(`${CONFIG.API_BASE_URL}/auth/register/`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)

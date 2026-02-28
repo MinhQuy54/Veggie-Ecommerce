@@ -57,6 +57,17 @@ class ProductList(APIView):
         # return Response(serializer.data)
         return paginator.get_paginated_response(serializer.data)
     
+
+class ProductDetail(APIView):
+    def get_obj(self,pk):
+        try:
+            return Product.objects.get(pk=pk)
+        except Product.DoesNotExist:
+            raise Http404()
+    def get(self, request, pk):
+        product = self.get_obj(pk)
+        serializer = ProductSerializer(product)
+        return Response(serializer.data)
 class ProductImageList(APIView):
     def get(self, requets):
         product_img = ProductImage.objects.all()
@@ -225,7 +236,9 @@ class UserList(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
         serializer = UserSerializer(request.user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if serializer:
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
     
 class UserDetail(APIView):
     permission_classes = [IsAuthenticated]
@@ -297,3 +310,19 @@ class AddressDetail(APIView):
         address = self.get_obj(pk)
         address.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+class CartList(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        cart = CartItem.objects.filter(user=request.user)
+        serializer = CartSerializer(cart, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request):
+        serializer = CartSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_400_BAD_REQUEST)

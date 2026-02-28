@@ -31,3 +31,12 @@ class ShippingAddressSerializer(serializers.ModelSerializer):
         model = ShippingAddress
         fields = '__all__'
         read_only_fields = ['user']
+
+class CartSerializer(serializers.ModelSerializer):
+    product = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all()
+    )
+    class Meta:
+        model = CartItem
+        fields = ['product', 'quantity']
+        read_only_fields = ['user']

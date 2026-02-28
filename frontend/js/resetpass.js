@@ -16,7 +16,7 @@ if (resetForm) {
     });
 }
 
-// ====== CONFIRM RESET PASSWORD ======
+// ===== CONFIRM RESET PASSWORD ======
 const loginForm = document.getElementById("loginForm");
 if (loginForm) {
     const token = new URLSearchParams(window.location.search).get("token");

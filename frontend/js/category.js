@@ -1,36 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const categoryContainer = document.getElementById('category-list');
-    const API_BASE = 'http://localhost:8000/api';
 
-    fetch(`${API_BASE}/category/`)
-        .then(response => response.json())
-        .then(data => {
-            categoryContainer.innerHTML = '';
-
-            data.forEach(category => {
-                const categoryNameEncoded = encodeURIComponent(category.name);
-
-                const categoryHtml = `
-            <div class="col-6 col-md-3">
-               <a href="./detail.html?id=${category.id}&name=${categoryNameEncoded}" style="text-decoration:none;"> 
-                    <div class="category-card">
-                        <div class="category-icon-bg">
-                            <img src="http://localhost:8000${category.image}" alt="${category.name}">
-                        </div>
-                        <h5 class="fw-bold mt-3 mb-1 text-dark">${category.name}</h5>
-                        <p class="text-muted small">${category.description.substring(0, 50)}...</p>
-                    </div>
-                </a>
-            </div>
-        `;
-                categoryContainer.innerHTML += categoryHtml;
-            });
-        })
-        .catch(error => {
-            console.error('Lỗi khi load category:', error);
-            categoryContainer.innerHTML = '<p class="text-center text-danger">Không thể tải danh mục sản phẩm.</p>';
-        });
-})
 document.addEventListener("DOMContentLoaded", function () {
     const navContainer = document.getElementById('product-categories-nav');
 
@@ -57,3 +25,52 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
 });
+
+
+async function loadCategory() {
+    const container = document.getElementById("category-list");
+    const template = document.getElementById("category-template");
+
+    try {
+        const response = await fetch(`${CONFIG.API_BASE_URL}/api/category/`);
+
+        if (!response.ok) {
+            throw new Error("Không tìm thấy danh mục");
+        }
+
+        const data = await response.json();
+
+        container.innerHTML = "";
+
+        data.forEach(category => {
+
+            const clone = template.content.cloneNode(true);
+
+            clone.querySelector(".category-link").href =
+                `detail.html?id=${category.id}`;
+
+            clone.querySelector(".category-img").src =
+                `${CONFIG.API_BASE_URL}${category.image}`;
+
+            clone.querySelector(".category-img").alt =
+                category.name;
+
+            clone.querySelector(".category-name").innerText =
+                category.name;
+
+            clone.querySelector(".category-desc").innerText =
+                category.description
+                    ? category.description.substring(0, 50) + "..."
+                    : "";
+
+            container.appendChild(clone);
+        });
+
+    } catch (error) {
+        console.error(error);
+        container.innerHTML =
+            "<p class='text-danger text-center'>Không thể tải danh mục</p>";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", loadCategory);
