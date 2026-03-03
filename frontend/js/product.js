@@ -25,7 +25,7 @@ async function loadProduct(categoryId = null) {
         data.results.forEach(product => {
 
             const clone = template.content.cloneNode(true);
-
+            const price = parseFloat(product.price);
             let imageUrl = 'img/bag-filled.png';
             if (product.images && product.images.length > 0) {
                 imageUrl = CONFIG.API_BASE_URL + product.images[0].image;
@@ -34,14 +34,16 @@ async function loadProduct(categoryId = null) {
             const quickViewBtn = clone.querySelector(".quick-view-btn");
             quickViewBtn.setAttribute("data-id", product.id);
             clone.querySelector('#product-img').src = imageUrl;
-            clone.querySelector('#product-price').textContent = product.price + "đ";
+            clone.querySelector('#product-price').textContent = price.toLocaleString('vi-VN') + "đ";
             clone.querySelector('#category-name').textContent = product.category_name;
             clone.querySelector('#product-name').textContent = product.name;
             clone.querySelector('#product-link-detail').href = `product-details.html?id=${product.id}`;
             clone.querySelector(".add-cart-btn").setAttribute("data-id", product.id);
+            clone.querySelector(".add-wish-btn").setAttribute("data-id", product.id);
 
             productContainer.appendChild(clone);
         });
+        await loadUserWishlist();
 
     } catch (error) {
         console.error(error);

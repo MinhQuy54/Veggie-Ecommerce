@@ -1,5 +1,3 @@
-let currentProductId = null;
-
 async function loadProductDetail() {
     const urlParams = new URLSearchParams(window.location.search);
     const productId = urlParams.get('id');
@@ -159,7 +157,7 @@ async function addToCart(productId = null) {
             existingItem.quantity += quantity;
         } else {
             cart.push({
-                product: productId,
+                product_id: productId,
                 quantity: quantity
             });
         }
@@ -180,7 +178,7 @@ async function addToCart(productId = null) {
                 "Authorization": "Bearer " + token
             },
             body: JSON.stringify({
-                product: productId,
+                product_id: productId,
                 quantity: quantity
             })
         });

@@ -319,10 +319,91 @@ class CartList(APIView):
         serializer = CartSerializer(cart, many=True)
         return Response(serializer.data)
     
+    # def post(self, request):
+    #     serializer = CartSerializer(data=request.data)
+
+    #     if serializer.is_valid():
+    #         serializer.save(user=request.user)
+    #         return Response(serializer.data, status=status.HTTP_200_OK)
+    #     return Response(status=status.HTTP_400_BAD_REQUEST)
     def post(self, request):
-        serializer = CartSerializer(data=request.data)
+        product_id = request.data.get('product_id')
+        quantity = request.data.get('quantity',1)
+        
+        cart_item, created = CartItem.objects.get_or_create(
+            user = request.user,
+            product_id = product_id,
+            defaults={'quantity': quantity}
+        )
+
+        if not created:
+            cart_item.quantity += int(quantity)
+            cart_item.save()
+
+        serializer = CartSerializer(cart_item)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class CartDetail(APIView):
+    def get_obj(self, pk):
+        try:
+            return CartItem.objects.get(pk=pk)
+        except CartItem.DoesNotExist:
+            raise Http404()
+    
+    def get(self, request, pk):
+        item = self.get_obj(pk)
+        serializer = CartSerializer(item)
+        return Response(serializer.data)
+    
+    def delete(self, request,pk):
+        item = self.get_obj(pk)
+        item.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
+class WishList(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        wishes = Wishlist.objects.filter(user=request.user)
+        product_ids = wishes.values_list("product_id", flat=True)
+        return Response(list(product_ids))
+    
+    def post(self, request):
+        serializer = WishListSerializer(data=request.data)
 
         if serializer.is_valid():
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+class WishDetail(APIView):
+    permission_classes = [IsAuthenticated]
+    def get_obj(self, pk):
+        try:
+            return Wishlist.objects.get(pk=pk)
+        except Wishlist.DoesNotExist:
+            raise Http404()
+    def get(self, request, pk):
+        wish = self.get_obj(pk)
+        serializer = WishListSerializer(wish)
+        return Response(serializer.data)
+
+    def delete(self, requst,pk):
+        wish = self.get_obj(pk)
+        wish.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+class WishToggle(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request):
+        product_id = request.data.get('product')
+        wish, created = Wishlist.objects.get_or_create(
+            user=request.user,
+            product_id=product_id
+        )
+
+        if not created:
+            wish.delete()
+            return Response({"status": "removed"})
+        return Response({"status": "added"})

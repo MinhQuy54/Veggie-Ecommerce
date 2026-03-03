@@ -15,5 +15,9 @@ urlpatterns = [
     path('user/update/', UserDetail.as_view()),
     path('address/', AddressList.as_view()),
     path('address/<int:pk>/',AddressDetail.as_view()),
-    path('cart/', CartList.as_view())
+    path('cart/', CartList.as_view()),
+    path('cart/<int:pk>/', CartDetail.as_view()),
+    path('wish/', WishList.as_view()),
+    path('wish/<int:pk>/', WishDetail.as_view()),
+    path('wish/toggle/', WishToggle.as_view()),
 ]

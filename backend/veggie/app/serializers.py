@@ -33,10 +33,24 @@ class ShippingAddressSerializer(serializers.ModelSerializer):
         read_only_fields = ['user']
 
 class CartSerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
+    product_id = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all(),
+        source='product',
+        write_only=True
+    )
+
+    class Meta:
+        model = CartItem
+        fields = ['product', 'product_id', 'quantity', 'id']
+        read_only_fields = ['user']
+
+class WishListSerializer(serializers.ModelSerializer):
     product = serializers.PrimaryKeyRelatedField(
         queryset=Product.objects.all()
     )
     class Meta:
-        model = CartItem
-        fields = ['product', 'quantity']
+        model = Wishlist
+        fields = ['id','product']
         read_only_fields = ['user']
+

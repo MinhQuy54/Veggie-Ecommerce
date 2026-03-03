@@ -584,3 +584,97 @@ body {
 .custom-dropdown-menu li a:hover {
     color: #82B400;
 }
+
+/* Chiều rộng sidebar */
+#miniCart {
+    width: 400px;
+}
+
+/* Màu xanh đặc trưng */
+.text-veggie {
+    color: #82b440;
+}
+
+/* Nút xóa sản phẩm (dấu X nhỏ ở góc ảnh) */
+.remove-item-btn {
+    position: absolute;
+    top: 15px;
+    left: -5px;
+    width: 22px;
+    height: 22px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #999;
+    z-index: 2;
+    transition: 0.3s;
+}
+
+.remove-item-btn:hover {
+    background: #ff4d4d;
+    color: #fff;
+    border-color: #ff4d4d;
+}
+
+/* Ảnh sản phẩm */
+.item-img {
+    width: 85px;
+    height: 85px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 5px;
+    background: #f9f9f9;
+}
+
+/* Nút View Cart (Màu xanh lá) */
+.btn-veggie-cart {
+    background-color: #82b440;
+    color: white;
+    border: none;
+    border-radius: 0;
+    font-size: 13px;
+    letter-spacing: 1px;
+}
+
+.btn-veggie-cart:hover {
+    background-color: #6d9735;
+    color: white;
+}
+
+/* Nút Checkout (Màu đen/xanh đen) */
+.btn-dark-cart {
+    background-color: #051c1c;
+    color: white;
+    border: none;
+    border-radius: 0;
+    font-size: 13px;
+    letter-spacing: 1px;
+}
+
+.btn-dark-cart:hover {
+    background-color: #000;
+    color: white;
+}
+
+/* Badge trên giỏ hàng chính */
+.cart-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #82b440;
+    color: white;
+    font-size: 11px;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: bold;
+}

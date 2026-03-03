@@ -44,12 +44,56 @@
                             <li><a href="login.html" id="auth-status-text">Login</a></li>
                         </ul>
                     </div>
-                    <div class="position-relative">
-                        <span class="material-symbols-outlined cursor-pointer">shopping_cart</span>
-                        <span class="cart-badge">0</span>
+                    <div class="position-relative" data-bs-toggle="offcanvas" data-bs-target="#miniCart"
+                        style="cursor: pointer;">
+                        <span class="material-symbols-outlined">shopping_cart</span>
+                        <span class="cart-badge"></span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </nav>
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="miniCart">
+
+    <div class="offcanvas-header border-bottom py-4">
+        <h5 class="fw-bold ">Giỏ Hàng</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body">
+        <div id="mini-cart-list" class="cart-items"></div>
+    </div>
+
+    <div class="offcanvas-footer p-4 border-top">
+        <div class="d-flex justify-content-between mb-4">
+            <span class="fw-bold">Subtotal:</span>
+            <span class="fw-bold text-veggie" id="mini-cart-subtotal">$0.00</span>
+        </div>
+        <div class="row g-2 mb-3">
+            <div class="col-6"><a href="cart.html"
+                    class="btn btn-veggie-cart w-100 py-3 fw-bold small text-uppercase">View Cart</a></div>
+            <div class="col-6"><a href="checkout.html"
+                    class="btn btn-dark-cart w-100 py-3 fw-bold small text-uppercase">Checkout</a></div>
+        </div>
+    </div>
+</div>
+
+<template id="mini-cart-template">
+    <div class="cart-item d-flex align-items-center py-3 border-bottom position-relative">
+        <button class="remove-item-btn" data-id="">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="item-img border rounded">
+            <img src="" alt="product" class="img-fluid mini-cart-img">
+        </div>
+        <div class="item-info ms-3">
+            <h6 class="fw-bold text-dark mini-cart-name"></h6>
+            <span class="text-muted">
+                <span class="mini-cart-quantity"></span> x
+                <span class="fw-semibold mini-cart-price"></span>
+            </span>
+        </div>
+    </div>
+</template>

@@ -80,6 +80,7 @@ async function loadProducts(apiUrl) {
 
         data.results.forEach(product => {
             const clone = template.content.cloneNode(true);
+            const price = parseFloat(product.price);
             let imageUrl = 'img/bag-filled.png';
             if (product.images && product.images.length > 0) {
                 imageUrl = CONFIG.API_BASE_URL + product.images[0].image;
@@ -88,7 +89,7 @@ async function loadProducts(apiUrl) {
             quickViewBtn.setAttribute("data-id", product.id);
 
             clone.querySelector('#product-img').src = imageUrl;
-            clone.querySelector('#product-price').textContent = product.price + "đ";
+            clone.querySelector('#product-price').textContent = price.toLocaleString('vn-VN') + "đ";
             clone.querySelector('#category-name').textContent = product.category_name;
             clone.querySelector('#product-name').textContent = product.name;
             clone.querySelector('#product-link-detail').href = `product-details.html?id=${product.id}`;
