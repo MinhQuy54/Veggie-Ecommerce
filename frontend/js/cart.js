@@ -152,8 +152,8 @@ async function removeItemCart(id) {
 }
 
 
-
-
 document.addEventListener("DOMContentLoaded", function () {
     updateCartBadge();
 });
+
+

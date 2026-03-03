@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="./css/style.css">
 </head>
 <style>
-    /* Tông màu chủ đạo xanh lá hữu cơ */
     :root {
         --primary-color: #78a206;
         --hover-color: #5d7c05;
@@ -37,7 +36,6 @@
         background-color: var(--hover-color);
     }
 
-    /* Tab styling */
     .custom-tabs .nav-link {
         color: #888;
         border: none;
@@ -50,16 +48,11 @@
         background: transparent;
     }
 
-    /* Quantity input */
-    .qty-container {
-        background: #f8f9fa;
-    }
 
     .qty-input::-webkit-inner-spin-button {
         display: none;
     }
 
-    /* Breadcrumb overlay */
     .category-banner {
         position: relative;
         overflow: hidden;
@@ -129,8 +122,9 @@
                                     <button class="qty-btn border-0 bg-transparent px-3 py-2"
                                         onclick="changeQty(1)">+</button>
                                 </div>
-                                <button class="btn btn-success px-5 py-2 fw-bold d-flex align-items-center">
-                                    <i class="fa-solid fa-cart-shopping"></i> ADD TO CART
+                                <button class="btn btn-success px-5 py-2 fw-bold d-flex align-items-center"
+                                    onclick="addToCart()">
+                                    <i class="fa-solid fa-cart-shopping"></i> THÊM VÀO GIỎ HÀNG
                                 </button>
                             </div>
 
@@ -188,10 +182,11 @@
 </body>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="./js/config.js"></script>
 <script src="./js/header.js"></script>
 <script src="./js/footer.js"></script>
-<script src="./js/cart.js"></script>
-<script src="./js/config.js"></script>
+<script src="./js/load-modal.js"></script>
 <script src="./js/product-detail.js"></script>
+<script src="./js/cart.js"></script>
 
 </html>

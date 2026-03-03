@@ -1,4 +1,4 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render,redirect,get_object_or_404
 from django.http import Http404
 from .models import *
 from .serializers import *
@@ -329,7 +329,18 @@ class CartList(APIView):
     def post(self, request):
         product_id = request.data.get('product_id')
         quantity = request.data.get('quantity',1)
+        product = get_object_or_404(Product, id=product_id)
+
+        if product.stock < 1:
+            return Response(
+                {"error" : "Het hang"}, status=status.HTTP_400_BAD_REQUEST)
         
+        if quantity > product.stock:
+            return Response(
+                {"error": f"Chỉ còn {product.stock} sản phẩm trong kho"},
+                 status=status.HTTP_400_BAD_REQUEST)
+        
+
         cart_item, created = CartItem.objects.get_or_create(
             user = request.user,
             product_id = product_id,
@@ -337,7 +348,14 @@ class CartList(APIView):
         )
 
         if not created:
-            cart_item.quantity += int(quantity)
+            new_quantity = cart_item.quantity + int(quantity)
+
+            if new_quantity > product.stock:
+                return Response(
+                {"error": f"Bạn chỉ có thể mua tối đa {product.stock} sản phẩm"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            cart_item.quantity = new_quantity
             cart_item.save()
 
         serializer = CartSerializer(cart_item)
