@@ -633,7 +633,7 @@ body {
 }
 
 /* Nút View Cart (Màu xanh lá) */
-.btn-veggie-cart {
+.btn-veggie-mini-cart {
     background-color: #82b440;
     color: white;
     border: none;
@@ -642,8 +642,8 @@ body {
     letter-spacing: 1px;
 }
 
-.btn-veggie-cart:hover {
-    background-color: #6d9735;
+.btn-veggie-mini-cart:hover {
+    background-color: black;
     color: white;
 }
 
@@ -658,7 +658,7 @@ body {
 }
 
 .btn-dark-cart:hover {
-    background-color: #000;
+    background-color: #82b440;
     color: white;
 }
 

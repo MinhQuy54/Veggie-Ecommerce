@@ -54,3 +54,15 @@ class WishListSerializer(serializers.ModelSerializer):
         fields = ['id','product']
         read_only_fields = ['user']
 
+class OrderSerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
+    class Meta:
+        model = Order
+        fields = ['product', 'shipping_address', 'total_price']
+        read_only_fields = ['user']
+class OrderItemSerializer(serializers.ModelSerializer):
+    product = ProductSerializer(read_only=True)
+    order = OrderSerializer(read_only=True)
+    class Meta:
+        model = OrderItem
+        fields = ['product', 'quantity', 'order']

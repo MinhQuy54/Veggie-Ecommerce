@@ -373,6 +373,15 @@ class CartDetail(APIView):
         serializer = CartSerializer(item)
         return Response(serializer.data)
     
+    def put(self, request, pk):
+        item = self.get_obj(pk)
+        serializer = CartSerializer(item, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save(user=request.user)
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     def delete(self, request,pk):
         item = self.get_obj(pk)
         item.delete()
@@ -425,3 +434,4 @@ class WishToggle(APIView):
             wish.delete()
             return Response({"status": "removed"})
         return Response({"status": "added"})
+    
