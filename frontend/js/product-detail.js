@@ -215,11 +215,10 @@ async function addToCart(productId = null) {
 
     try {
 
-        const response = await fetch(`${CONFIG.API_BASE_URL}/api/cart/`, {
+        const response = await fetchWithAuth(`${CONFIG.API_BASE_URL}/api/cart/`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + token
+                "Content-Type": "application/json"
             },
             body: JSON.stringify({
                 product_id: productId,

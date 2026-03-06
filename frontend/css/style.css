@@ -525,11 +525,10 @@ body {
 .btn-veggie {
     background-color: #78a206;
     border: none;
-    transition: 0.3s;
 }
 
 .btn-veggie:hover {
-    background-color: #133236;
+    background-color: black;
 }
 
 /* Khối bao quanh icon person */

@@ -41,13 +41,11 @@ document.addEventListener("click", function (e) {
 });
 
 document.addEventListener("DOMContentLoaded", function () {
+    updateCartBadge();
     loadCart();
 
 });
-document.addEventListener("DOMContentLoaded", function () {
-    updateCartBadge();
 
-});
 
 async function updateCartBadge() {
 
@@ -67,11 +65,7 @@ async function updateCartBadge() {
 
     try {
 
-        const response = await fetch(`${CONFIG.API_BASE_URL}/api/cart/`, {
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        });
+        const response = await fetchWithAuth(`${CONFIG.API_BASE_URL}/api/cart/`)
 
         if (!response.ok) {
             badge.innerText = 0;
@@ -105,11 +99,7 @@ async function loadMiniCart() {
 
     try {
 
-        const response = await fetch(`${CONFIG.API_BASE_URL}/api/cart/`, {
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        });
+        const response = await fetchWithAuth(`${CONFIG.API_BASE_URL}/api/cart/`);
 
         if (!response.ok) {
             throw new Error("Không tìm thấy giỏ hàng");
@@ -167,11 +157,8 @@ async function removeItemMiniCart(id) {
 
     try {
 
-        const response = await fetch(`${CONFIG.API_BASE_URL}/api/cart/${id}/`, {
-            method: "DELETE",
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
+        const response = await fetchWithAuth(`${CONFIG.API_BASE_URL}/api/cart/${id}/`, {
+            method: "DELETE"
         });
 
         if (response.ok) {
@@ -196,19 +183,18 @@ async function loadCart() {
     const template = document.getElementById("template-cart");
     const cartContainer = document.getElementById("cart-item");
 
+
     const token = localStorage.getItem("access_token");
+    if (!cartContainer || !template) return;
     if (!token) {
         alert("Vui long dang nhap de xem gio hang");
+        window.location.href = "login.html";
         return;
     }
 
     try {
 
-        const response = await fetch(`${CONFIG.API_BASE_URL}/api/cart/`, {
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        });
+        const response = await fetchWithAuth(`${CONFIG.API_BASE_URL}/api/cart/`);
 
         if (!response.ok) {
             throw new Error("Khong tim thay san pham");
@@ -289,15 +275,13 @@ async function removeCartItem(id) {
     }
 
     try {
-        const response = await fetch(`${CONFIG.API_BASE_URL}/api/cart/${id}/`, {
-            method: "DELETE",
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
+        const response = await fetchWithAuth(`${CONFIG.API_BASE_URL}/api/cart/${id}/`, {
+            method: "DELETE"
         });
 
         if (response.ok) {
             loadCart();
+            loadMiniCart();
             updateCartBadge();
         }
 
@@ -323,11 +307,10 @@ async function changeQty(button, cartId, amount) {
     qtyInput.value = currentQty;
 
     try {
-        const response = await fetch(`${CONFIG.API_BASE_URL}/api/cart/${cartId}/`, {
+        const response = await fetchWithAuth(`${CONFIG.API_BASE_URL}/api/cart/${cartId}/`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
             },
             body: JSON.stringify({
                 quantity: currentQty
@@ -336,6 +319,7 @@ async function changeQty(button, cartId, amount) {
 
         if (response.ok) {
             loadCart();
+            loadMiniCart();
             updateCartBadge();
         }
 

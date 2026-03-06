@@ -22,10 +22,9 @@ document.addEventListener("DOMContentLoaded", function () {
     let editingAddressId = null;
 
     function fetchUserProfile() {
-        fetch(`${CONFIG.API_BASE_URL}/api/user/`, {
+        fetchWithAuth(`${CONFIG.API_BASE_URL}/api/user/`, {
             method: "GET",
             headers: {
-                "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json"
             }
         })
@@ -49,10 +48,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function fetchAddresses() {
-        fetch(`${CONFIG.API_BASE_URL}/api/address/`, {
+        fetchWithAuth(`${CONFIG.API_BASE_URL}/api/address/`, {
             method: "GET",
             headers: {
-                "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json"
             }
         })
@@ -94,10 +92,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const modalInstance = new bootstrap.Modal(modalEl);
         modalInstance.show();
 
-        fetch(`${CONFIG.API_BASE_URL}/api/address/${id}/`, {
-            method: "GET",
-            headers: { "Authorization": `Bearer ${token}` }
-        })
+        fetch(`${CONFIG.API_BASE_URL}/api/address/${id}/`)
             .then(res => res.json())
             .then(addr => {
                 document.getElementById('addr-name').value = addr.full_name;
@@ -125,10 +120,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const method = editingAddressId ? "PUT" : "POST";
         const url = editingAddressId ? `${CONFIG.API_BASE_URL}/api/address/${editingAddressId}/` : `${CONFIG.API_BASE_URL}/api/address/`;
 
-        fetch(url, {
+        fetchWithAuth(url, {
             method: method,
             headers: {
-                "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify(payload)
@@ -159,9 +153,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     window.deleteAddress = function (id) {
         if (confirm("Bạn có chắc muốn xóa địa chỉ này?")) {
-            fetch(`${CONFIG.API_BASE_URL}/api/address/${id}/`, {
+            fetchWithAuth(`${CONFIG.API_BASE_URL}/api/address/${id}/`, {
                 method: "DELETE",
-                headers: { "Authorization": `Bearer ${token}` }
             })
                 .then(res => {
                     if (res.ok) fetchAddresses();
@@ -198,10 +191,9 @@ document.addEventListener("DOMContentLoaded", function () {
             updateData['new_password'] = newPassword;
         }
 
-        fetch(`${CONFIG.API_BASE_URL}/api/user/update/`, {
+        fetchWithAuth(`${CONFIG.API_BASE_URL}/api/user/update/`, {
             method: "PUT",
             headers: {
-                "Authorization": `Bearer ${token}`,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify(updateData)
@@ -230,6 +222,7 @@ document.addEventListener("DOMContentLoaded", function () {
             e.preventDefault();
             if (confirm("Đăng xuất?")) {
                 localStorage.removeItem("access_token");
+                localStorage.removeItem("refresh_token");
                 window.location.href = "login.html";
             }
         });

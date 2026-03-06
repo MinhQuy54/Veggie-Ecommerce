@@ -8,8 +8,9 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate
+from .momo import create_momo_payment
 
-import uuid
+import uuid, time
 from django.core.mail import send_mail
 from django.conf import settings
 
@@ -362,6 +363,7 @@ class CartList(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class CartDetail(APIView):
+    permission_classes = [IsAuthenticated]
     def get_obj(self, pk):
         try:
             return CartItem.objects.get(pk=pk)
@@ -435,3 +437,94 @@ class WishToggle(APIView):
             return Response({"status": "removed"})
         return Response({"status": "added"})
     
+
+class CheckoutList(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = CheckoutSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=400)
+        
+        user = request.user
+        address = serializer.validated_data['shipping_address']
+        payment_method = serializer.validated_data['payment_method']
+        total_price = 15000
+
+        cart_items = CartItem.objects.filter(user=user)
+
+        if not cart_items.exists():
+            return Response({"error": "Giỏ hàng trống"}, status=400)
+        
+        for i in cart_items:
+            total_price += i.product.price * i.quantity
+
+        order = Order.objects.create(
+            user=user,
+            shipping_address=address,
+            total_price=total_price,
+            status=0
+        )
+        
+        for item in cart_items:
+
+            OrderItem.objects.create(
+                order=order,
+                product=item.product,
+                quantity=item.quantity,
+                price=item.product.price
+            )
+
+        Payment.objects.create(
+            order=order,
+            payment_method=payment_method,
+            transaction_id="",
+            amount=total_price,
+            status=0
+        )
+
+        if payment_method.lower() == "momo":
+            try:
+                unique_order_id = f"{order.id}_{int(time.time())}"
+                momo_res = create_momo_payment(int(total_price), unique_order_id)
+                print("MoMo response:", momo_res)
+                if momo_res.get("resultCode") != 0:
+                        return Response({
+                            "error": momo_res.get("message", "MoMo payment failed"),
+                            "momo_res": momo_res
+                        }, status=400)
+                
+                cart_items.delete()
+                return Response({
+                        "payment_method": "momo",
+                        "payUrl": momo_res.get("payUrl")
+                    })
+
+            except Exception as e:
+                print("MoMo EXCEPTION:", e)
+                return Response({
+                    "error": "Lỗi server khi gọi MoMo"
+                }, status=500)
+
+        cart_items.delete()
+        return Response({
+            "message": "Đặt hàng thành công",
+            "order_id": order.id
+        })
+
+
+
+class SearchListView(APIView):
+    def get(self, request):
+        key = request.query_params.get('q')
+        queryset = Product.objects.all()
+
+        if key:
+            product = queryset.filter(name__icontains=key)
+        serializer = ProductSerializer(product, many=True)
+        paginator = ProductPagination()
+        paginated_products = paginator.paginate_queryset(product, request)
+        serializer = ProductSerializer(paginated_products, many=True)
+        
+        return paginator.get_paginated_response(serializer.data)
+        # return Response(serializer.data)

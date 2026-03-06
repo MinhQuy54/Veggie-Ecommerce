@@ -20,13 +20,12 @@ async function toggleWish(productId, buttonElement) {
 
     const icon = buttonElement.querySelector("i");
 
-    const response = await fetch(
+    const response = await fetchWithAuth(
         `${CONFIG.API_BASE_URL}/api/wish/toggle/`,
         {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
+                "Content-Type": "application/json"
             },
             body: JSON.stringify({ product: productId })
         }
@@ -87,13 +86,8 @@ async function loadUserWishlist() {
     }
 
     try {
-        const response = await fetch(
-            `${CONFIG.API_BASE_URL}/api/wish/`,
-            {
-                headers: {
-                    "Authorization": `Bearer ${token}`
-                }
-            }
+        const response = await fetchWithAuth(
+            `${CONFIG.API_BASE_URL}/api/wish/`
         );
 
         if (!response.ok) {

@@ -133,8 +133,9 @@
                             <div class="d-flex align-items-center flex-grow-1">
                                 <span class="fw-bold me-2 text-nowrap" style="font-size: 14px;">Chọn địa chỉ
                                     khác:</span>
-                                <select class="form-select w-50" style="border-radius: 4px; border: 1px solid #ddd;">
-                                    <option>Nguyễn Minh Diện - Quận Ngũ Hành Sơn</option>
+                                <select class="form-select w-50" id="address"
+                                    style="border-radius: 4px; border: 1px solid #ddd;">
+                                    <option id="address-option"></option>
                                 </select>
                             </div>
                             <button class="btn-add-address ms-2">THÊM ĐỊA CHỈ MỚI</button>
@@ -145,14 +146,14 @@
                             <div class="row g-4">
                                 <div class="col-md-6">
                                     <div class="input-group">
-                                        <input type="text" class="form-control bg-light" value="Minh Quý">
+                                        <input type="text" class="form-control bg-light" value="" id="fullname">
                                         <span class="input-group-text bg-light border-start-0"><i
                                                 class="fa-solid fa-user text-success"></i></span>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="input-group">
-                                        <input type="text" class="form-control bg-light" value="0325367066">
+                                        <input type="text" class="form-control bg-light" value="" id="phone">
                                         <span class="input-group-text bg-light border-start-0"><i
                                                 class="fa-solid fa-phone text-success"></i></span>
                                     </div>
@@ -160,12 +161,13 @@
                                 <div class="col-md-6">
                                     <label class="form-label">Địa chỉ</label>
                                     <input type="text" class="form-control bg-light border-end"
-                                        style="border-right: 1px solid #dee2e6 !important;" value="Bình Tân">
+                                        style="border-right: 1px solid #dee2e6 !important;" value=""
+                                        id="address-detail">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label">Thành phố</label>
                                     <input type="text" class="form-control bg-light border-end"
-                                        style="border-right: 1px solid #dee2e6 !important;" value="TP. Hồ Chí Minh">
+                                        style="border-right: 1px solid #dee2e6 !important;" value="" id="city">
                                 </div>
                             </div>
                         </div>
@@ -184,10 +186,10 @@
                             <div
                                 class="payment-option border p-3 mb-2 d-flex align-items-center justify-content-between">
                                 <div class="form-check m-0">
-                                    <input class="form-check-input" type="radio" name="payment" id="paypal" checked>
-                                    <label class="form-check-label fw-bold ms-2" for="paypal">PayPal</label>
+                                    <input class="form-check-input" type="radio" name="payment" id="momo" checked>
+                                    <label class="form-check-label fw-bold ms-2" for="paypal">Momo</label>
                                 </div>
-                                <img src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg"
+                                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZcQPC-zWVyFOu9J2OGl0j2D220D49D0Z7BQ&s"
                                     height="25">
                             </div>
                         </div>
@@ -196,24 +198,34 @@
                     <div class="col-lg-4">
                         <div class="order-summary p-4" style="background-color: #fff; margin-top: 50px;">
                             <h4 class="fw-bold mb-4">Tổng sản phẩm</h4>
-                            <div class="summary-row d-flex justify-content-between py-2 border-bottom">
-                                <span class="text-muted">Vegetables Juices × 2</span>
-                                <span class="fw-bold">$298.00</span>
-                            </div>
+                            <div id="summary-checkout"></div>
+                            <template id="template-checkout">
+                                <div class="summary-row d-flex justify-content-between py-2 border-bottom">
+                                    <span class="text-muted name-checkout"></span>
+                                    <span class="quantity-checkout"></span>
+                                    <span class="fw-bold total-price-item-checkout"></span>
+                                </div>
+                            </template>
                             <div class="summary-row d-flex justify-content-between py-2 border-bottom">
                                 <span class="text-muted">Vận chuyển và xử lý</span>
-                                <span class="fw-bold">$15.00</span>
+                                <span class="fw-bold">15.000đ</span>
                             </div>
                             <div class="summary-row d-flex justify-content-between py-2 border-bottom">
                                 <span class="text-muted">Vat</span>
-                                <span class="fw-bold">$00.00</span>
+                                <span class="fw-bold">0</span>
                             </div>
                             <div class="summary-row d-flex justify-content-between py-3">
                                 <span class="fw-bold h5">Tổng tiền</span>
-                                <span class="fw-bold h5">$633.00</span>
+                                <span class="fw-bold h5 total-checkout">
+
+                                </span>
                             </div>
                         </div>
+                        <button class="btn-add-address w-100 py-3 fw-bold text-uppercase" id="btn-place-order">
+                            Đặt hàng ngay
+                        </button>
                     </div>
+
                 </div>
             </div>
         </section>
@@ -225,7 +237,9 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="./js/config.js"></script>
 <script src="./js/cart.js"></script>
+<script src="./js/auth.js"></script>
 <script src="./js/footer.js"></script>
 <script src="./js/header.js"></script>
+<script src="./js/checkout.js"></script>
 
 </html>

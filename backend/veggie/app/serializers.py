@@ -55,14 +55,25 @@ class WishListSerializer(serializers.ModelSerializer):
         read_only_fields = ['user']
 
 class OrderSerializer(serializers.ModelSerializer):
-    product = ProductSerializer(read_only=True)
     class Meta:
         model = Order
-        fields = ['product', 'shipping_address', 'total_price']
-        read_only_fields = ['user']
+        fields = ['id', 'shipping_address', 'total_price', 'status', 'created_at']
+        read_only_fields = ['total_price', 'status']
+
 class OrderItemSerializer(serializers.ModelSerializer):
-    product = ProductSerializer(read_only=True)
-    order = OrderSerializer(read_only=True)
     class Meta:
         model = OrderItem
-        fields = ['product', 'quantity', 'order']
+        fields = ['product', 'quantity', 'price']
+
+class PaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = ['payment_method', 'transaction_id', 'amount', 'status']
+
+
+class CheckoutSerializer(serializers.Serializer):
+    shipping_address = serializers.PrimaryKeyRelatedField(
+        queryset=ShippingAddress.objects.all()
+    )
+
+    payment_method = serializers.CharField()

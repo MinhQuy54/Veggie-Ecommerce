@@ -1,5 +1,6 @@
 from .views import *
 from django.urls import path
+from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
     path('category/', CateogoryList.as_view()),
@@ -7,6 +8,7 @@ urlpatterns = [
     path("product/<int:pk>/", ProductDetail.as_view()),
     path('product_img/', ProductImageList.as_view()),
     path('auth/login/', LoginView.as_view()),
+    path("auth/token/refresh/", TokenRefreshView.as_view(), name=""),
     path('auth/register/', RegisterView.as_view()),
     path('auth/activate/<str:token>/', ActivateAccountView.as_view()),
     path('auth/reset-password/', RequestResetPasswordView.as_view()),
@@ -20,4 +22,6 @@ urlpatterns = [
     path('wish/', WishList.as_view()),
     path('wish/<int:pk>/', WishDetail.as_view()),
     path('wish/toggle/', WishToggle.as_view()),
+    path('checkout/', CheckoutList.as_view()),
+    path('search/', SearchListView.as_view()),
 ]
