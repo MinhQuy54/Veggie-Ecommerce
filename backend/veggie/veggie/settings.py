@@ -1,9 +1,9 @@
-import environ
+import environ,os
 from pathlib import Path
 from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+IS_RENDER = 'RENDER' in os.environ
 
 env = environ.Env(
     DEBUG=(bool, False)
@@ -71,7 +71,7 @@ DATABASES = {
         'PORT': env('DB_PORT'),
         'OPTIONS': {
             'ssl': {
-                'ca': '/etc/ssl/cert.pem', 
+                'ca': '/etc/ssl/certs/ca-certificates.crt' if IS_RENDER else '/etc/ssl/cert.pem',
             },
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         }
