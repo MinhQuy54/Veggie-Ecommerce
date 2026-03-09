@@ -329,7 +329,7 @@ class CartList(APIView):
     #     return Response(status=status.HTTP_400_BAD_REQUEST)
     def post(self, request):
         product_id = request.data.get('product_id')
-        quantity = request.data.get('quantity',1)
+        quantity = int(request.data.get('quantity', 1))
         product = get_object_or_404(Product, id=product_id)
 
         if product.stock < 1:
