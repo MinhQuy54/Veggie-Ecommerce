@@ -64,12 +64,15 @@ WSGI_APPLICATION = 'veggie.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': env('DB_NAME'),
-        'USER': env('DB_USER'),
+        'NAME': env('DB_DATABASE'),
+        'USER': env('DB_USERNAME'),
         'PASSWORD': env('DB_PASSWORD'),
         'HOST': env('DB_HOST'),
         'PORT': env('DB_PORT'),
         'OPTIONS': {
+            'ssl': {
+                'ca': '/etc/ssl/cert.pem', 
+            },
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         }
    }
