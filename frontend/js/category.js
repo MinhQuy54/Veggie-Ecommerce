@@ -2,7 +2,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     const navContainer = document.getElementById('product-categories-nav');
 
-    fetch('http://127.0.0.1:8000/api/category/')
+    fetch(`${CONFIG.API_BASE_URL}/api/category/`)
         .then(res => res.json())
         .then(data => {
             data.slice(0, 4).forEach((category, index) => {
