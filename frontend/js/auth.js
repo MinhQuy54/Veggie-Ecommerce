@@ -15,7 +15,7 @@ async function fetchWithAuth(url, options = {}) {
     if (response.status === 401) {
 
         const refreshRes = await fetch(
-            "http://127.0.0.1:8000/api/auth/token/refresh/",
+            `${CONFIG.API_BASE_URL}/api/auth/token/refresh/`,
             {
                 method: "POST",
                 headers: {
