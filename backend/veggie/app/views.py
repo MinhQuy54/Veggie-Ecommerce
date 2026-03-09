@@ -134,7 +134,7 @@ class RegisterView(APIView):
         user.activation_token = activation_token
         user.save()
 
-        activation_link = f"http://localhost:8000/api/auth/activate/{activation_token}/"
+        activation_link = f"https://veggie-ecommerce-1.onrender.com/api/auth/activate/{activation_token}/"
 
         send_mail(
             subject="Kích hoạt tài khoản Veggie",
@@ -155,7 +155,7 @@ class ActivateAccountView(APIView):
 
         if not user:
             return redirect(
-                "http://localhost:5500/frontend/login.html?activated=error"
+                "https://veggie-ecommerce.vercel.app/login.html?activated=error"
             )
 
         user.is_active = True
@@ -163,7 +163,7 @@ class ActivateAccountView(APIView):
         user.save()
 
         return redirect(
-            "http://localhost:5500/frontend/login.html?activated=success"
+            "https://veggie-ecommerce.vercel.app/login.html?activated=success"
         )
     
 class RequestResetPasswordView(APIView):
@@ -187,7 +187,7 @@ class RequestResetPasswordView(APIView):
         user.reset_token = token
         user.save()
 
-        reset_link = f"http://localhost:5500/frontend/resetpass.html?token={token}"
+        reset_link = f"https://veggie-ecommerce.vercel.app/resetpass.html?token={token}"
 
         send_mail(
             subject="Reset mật khẩu Veggie",
