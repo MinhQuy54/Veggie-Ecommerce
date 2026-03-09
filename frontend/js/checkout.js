@@ -12,7 +12,7 @@ async function loadAddress() {
 
     try {
 
-        const response = await fetch(`${CONFIG.API_BASE_URL}/api/address/${id}/`, {
+        const response = await fetchWithAuth(`${CONFIG.API_BASE_URL}/api/address/`, {
             headers: {
                 "Content-Type": "application/json"
             }
