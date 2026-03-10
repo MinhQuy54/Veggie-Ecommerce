@@ -64,17 +64,17 @@ WSGI_APPLICATION = 'veggie.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        # 'NAME': env('DB_DATABASE'),
-        # 'USER': env('DB_USERNAME'),
-        # 'PASSWORD': env('DB_PASSWORD'),
-        # 'HOST': env('DB_HOST'),
-        # 'PORT': env('DB_PORT'),
-
         'NAME': env('DB_DATABASE'),
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': '127.0.0.1',     
-        'PORT': '3306',
+        'USER': env('DB_USERNAME'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST'),
+        'PORT': env('DB_PORT'),
+
+        # 'NAME': env('DB_DATABASE'),
+        # 'USER': 'root',
+        # 'PASSWORD': '',
+        # 'HOST': '127.0.0.1',     
+        # 'PORT': '3306',
         'OPTIONS': {
             'ssl': {
                 'ca': '/etc/ssl/certs/ca-certificates.crt' if IS_RENDER else '/etc/ssl/cert.pem',
