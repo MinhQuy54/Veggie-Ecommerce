@@ -22,7 +22,7 @@ document.getElementById('registerForm').addEventListener("submit", async (e) => 
             return;
         }
 
-        alert("Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt.");
+        alert("Đăng ký thành công!");
         window.location.href = "login.html";
 
     } catch (err) {

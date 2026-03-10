@@ -1,33 +1,75 @@
-
 const resetForm = document.getElementById("resetForm");
+
 if (resetForm) {
     resetForm.addEventListener("submit", function (e) {
+
         e.preventDefault();
 
         const email = document.getElementById("email").value;
 
-        fetch("http://127.0.0.1:8000/api/auth/reset-password/", {
+        fetch(`${CONFIG.API_BASE_URL}/api/auth/reset-password/`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email })
         })
             .then(res => res.json())
-            .then(data => alert(data.message || data.error));
+            .then(data => {
+
+                if (data.reset_link) {
+
+                    document.getElementById("resetLinkBox").innerHTML = `
+                        <div class="alert alert-success mt-4 text-center shadow-sm">
+                            <h6 class="fw-bold mb-2">Reset link created</h6>
+
+                            <p class="small text-muted mb-3">
+                                Click the button below to reset your password
+                            </p>
+
+                            <a href="${data.reset_link}" 
+                            target="_blank" 
+                            class="btn btn-success px-4 py-2 fw-bold"
+                            style="background:#82B400;border:none;border-radius:4px;">
+                                Reset Password
+                            </a>
+                        </div>
+                        `;
+
+                } else {
+
+                    alert(data.error);
+
+                }
+
+            });
     });
 }
 
-// ===== CONFIRM RESET PASSWORD ======
+
+
 const loginForm = document.getElementById("loginForm");
+
 if (loginForm) {
+
     const token = new URLSearchParams(window.location.search).get("token");
 
     loginForm.addEventListener("submit", function (e) {
+
         e.preventDefault();
 
         const password = document.getElementById("password").value;
         const confirm = document.getElementById("cofirmpassword").value;
 
-        fetch("http://127.0.0.1:8000/api/auth/reset-password-confirm/", {
+        if (!token) {
+            alert("Link reset không hợp lệ");
+            return;
+        }
+
+        if (password !== confirm) {
+            alert("Mật khẩu không khớp");
+            return;
+        }
+
+        fetch(`${CONFIG.API_BASE_URL}/api/auth/reset-password-confirm/`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -37,7 +79,39 @@ if (loginForm) {
             })
         })
             .then(res => res.json())
-            .then(data => alert(data.message || data.error));
-        window.location.href = "login.html";
+            .then(data => {
+
+                alert(data.message || data.error);
+
+                if (data.message) {
+                    window.location.href = "login.html";
+                }
+
+            });
     });
 }
+// // ===== CONFIRM RESET PASSWORD ======
+// const loginForm = document.getElementById("loginForm");
+// if (loginForm) {
+//     const token = new URLSearchParams(window.location.search).get("token");
+
+//     loginForm.addEventListener("submit", function (e) {
+//         e.preventDefault();
+
+//         const password = document.getElementById("password").value;
+//         const confirm = document.getElementById("cofirmpassword").value;
+
+//         fetch("http://127.0.0.1:8000/api/auth/reset-password-confirm/", {
+//             method: "POST",
+//             headers: { "Content-Type": "application/json" },
+//             body: JSON.stringify({
+//                 token: token,
+//                 password: password,
+//                 confirm_password: confirm
+//             })
+//         })
+//             .then(res => res.json())
+//             .then(data => alert(data.message || data.error));
+//         window.location.href = "login.html";
+//     });
+// }

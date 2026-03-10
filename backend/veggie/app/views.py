@@ -16,7 +16,7 @@ from django.conf import settings
 
 # pagination
 from .pagination import ProductPagination
-from utils.send_emails import send_email
+from .utils.send_emails import send_email
 
 # Create your views here.
 
@@ -121,7 +121,7 @@ class RegisterView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        activation_token = str(uuid.uuid4())
+        # activation_token = str(uuid.uuid4())
 
         user = User.objects.create_user(
             username=email,
@@ -129,11 +129,14 @@ class RegisterView(APIView):
             password=password,
             first_name=first_name,
             last_name=last_name,
-            is_active=False   # CHƯA KÍCH HOẠT
+            is_active=True 
         )
 
-        user.activation_token = activation_token
-        user.save()
+        return Response({
+            "message": "Đăng ký thành công"
+        }, status=status.HTTP_201_CREATED)
+        # user.activation_token = activation_token
+        # user.save()
 
         # activation_link = f"https://veggie-ecommerce-1.onrender.com/api/auth/activate/{activation_token}/"
 
@@ -151,17 +154,19 @@ class RegisterView(APIView):
         # )
 
 
-        link = f"https://veggie-ecommerce-1.onrender.com/api/auth/activate/{activation_token}/"
+        # link = f"https://veggie-ecommerce-1.onrender.com/api/auth/activate/{activation_token}/"
 
-        html = f"""
-        <h2>Kích hoạt tài khoản</h2>
-        <p>Bấm vào link dưới đây:</p>
-        <a href="{link}">Activate Account</a>
-        """
+        # html = f"""
+        # <h2>Kích hoạt tài khoản</h2>
+        # <p>Bấm vào link dưới đây:</p>
+        # <a href="{link}">Activate Account</a>
+        # """
 
-        send_email(email, "Activate account", html)
+        # send_email(email, "Activate account", html)
 
-        return Response({"message": "Check email to activate"})
+        # return Response({"message": "Check email to activate"})
+
+
 
 class ActivateAccountView(APIView):
     def get(self, request, token):
@@ -185,67 +190,94 @@ class RequestResetPasswordView(APIView):
         email = request.data.get('email')
 
         if not email:
-            return Response(
-                {"error": "Vui lòng nhập email"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Vui lòng nhập email"}, status=400)
+
         user = User.objects.filter(email=email).first()
 
         if not user:
-            return Response(
-                {"error": "Email không tồn tại"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
+            return Response({"error": "Email không tồn tại"}, status=400)
+
         token = str(uuid.uuid4())
+
         user.reset_token = token
+        user.reset_token_created = int(time.time())
         user.save()
 
         reset_link = f"https://veggie-ecommerce.vercel.app/resetpass.html?token={token}"
+        # reset_link = f"http://127.0.0.1:5500/frontend/resetpass.html?token={token}"
 
-        send_mail(
-            subject="Reset mật khẩu Veggie",
-            message=f"Nhấn vào link để đặt lại mật khẩu:\n{reset_link}",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[email],
-        )
-        return Response(
-            {"message": "Đã gửi email reset mật khẩu"},
-            status=status.HTTP_200_OK
-        )
+        return Response({
+            "message": "Link reset password",
+            "reset_link": reset_link
+        })
+# class RequestResetPasswordView(APIView):
+#     def post(self, request):
+#         email = request.data.get('email')
+#         new_password = request.data.get('new_password')
+
+#         if not email:
+#             return Response(
+#                 {"error": "Vui lòng nhập email"},
+#                 status=status.HTTP_400_BAD_REQUEST
+#             )
+#         user = User.objects.filter(email=email).first()
+
+#         if not user:
+#             return Response(
+#                 {"error": "Email không tồn tại"},
+#                 status=status.HTTP_400_BAD_REQUEST
+#             )
+#         user.set_password(new_password)
+#         user.save()
+
+#         return Response(
+#             {"message": "Đổi mật khẩu thành công"},
+#             status=status.HTTP_200_OK
+#         )
+        
+        # token = str(uuid.uuid4())
+        # user.reset_token = token
+        # user.save()
+
+        # reset_link = f"https://veggie-ecommerce.vercel.app/resetpass.html?token={token}"
+
+        # send_mail(
+        #     subject="Reset mật khẩu Veggie",
+        #     message=f"Nhấn vào link để đặt lại mật khẩu:\n{reset_link}",
+        #     from_email=settings.DEFAULT_FROM_EMAIL,
+        #     recipient_list=[email],
+        # )
+        # return Response(
+        #     {"message": "Đã gửi email reset mật khẩu"},
+        #     status=status.HTTP_200_OK
+        # )
     
 class ResetPasswordConfirmView(APIView):
-    def post(self, request):
-        token = request.data.get('token')
-        password = request.data.get('password')
-        confirm_password = request.data.get('confirm_password')
 
-        if not token or not password or not confirm_password:
-            return Response(
-                {"error": "Thiếu dữ liệu"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        if password != confirm_password:
-            return Response(
-                {"error": "Mật khẩu không khớp"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
+    def post(self, request):
+
+        token = request.data.get("token")
+        password = request.data.get("password")
+        confirm = request.data.get("confirm_password")
+
+        if not token or not password or not confirm:
+            return Response({"error": "Thiếu dữ liệu"}, status=400)
+
+        if password != confirm:
+            return Response({"error": "Mật khẩu không khớp"}, status=400)
+
         user = User.objects.filter(reset_token=token).first()
+
         if not user:
-            return Response(
-                {"error": "Token không hợp lệ hoặc đã hết hạn"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Token không hợp lệ"}, status=400)
 
         user.set_password(password)
         user.reset_token = None
+        user.reset_token_created = None
         user.save()
 
-        return Response(
-            {"message": "Đổi mật khẩu thành công"},
-            status=status.HTTP_200_OK)
+        return Response({"message": "Reset password thành công"})
+    
 
 class UserList(APIView):
     permission_classes = [IsAuthenticated]
