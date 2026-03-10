@@ -16,6 +16,7 @@ from django.conf import settings
 
 # pagination
 from .pagination import ProductPagination
+from utils.send_emails import send_email
 
 # Create your views here.
 
@@ -134,20 +135,33 @@ class RegisterView(APIView):
         user.activation_token = activation_token
         user.save()
 
-        activation_link = f"https://veggie-ecommerce-1.onrender.com/api/auth/activate/{activation_token}/"
+        # activation_link = f"https://veggie-ecommerce-1.onrender.com/api/auth/activate/{activation_token}/"
 
-        send_mail(
-            subject="Kích hoạt tài khoản Veggie",
-            message=f"Nhấn vào link để kích hoạt tài khoản:\n{activation_link}",
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[email],
-            fail_silently=False
-        )
+        # send_mail(
+        #     subject="Kích hoạt tài khoản Veggie",
+        #     message=f"Nhấn vào link để kích hoạt tài khoản:\n{activation_link}",
+        #     from_email=settings.DEFAULT_FROM_EMAIL,
+        #     recipient_list=[email],
+        #     fail_silently=False
+        # )
 
-        return Response(
-            {"message": "Đăng ký thành công. Vui lòng kiểm tra email để kích hoạt tài khoản"},
-            status=status.HTTP_201_CREATED
-        )
+        # return Response(
+        #     {"message": "Đăng ký thành công. Vui lòng kiểm tra email để kích hoạt tài khoản"},
+        #     status=status.HTTP_201_CREATED
+        # )
+
+
+        link = f"https://veggie-ecommerce-1.onrender.com/api/auth/activate/{activation_token}/"
+
+        html = f"""
+        <h2>Kích hoạt tài khoản</h2>
+        <p>Bấm vào link dưới đây:</p>
+        <a href="{link}">Activate Account</a>
+        """
+
+        send_email(email, "Activate account", html)
+
+        return Response({"message": "Check email to activate"})
 
 class ActivateAccountView(APIView):
     def get(self, request, token):
