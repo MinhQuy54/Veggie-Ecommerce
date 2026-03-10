@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", loadAddress);
 document.addEventListener("DOMContentLoaded", loadCartCheckout);
 document.getElementById("btn-place-order").addEventListener("click", placeOrder);
+document.getElementById("save-address-btn").addEventListener("click", addAddress);
 let addressList = [];
 
 async function loadAddress() {
@@ -70,6 +71,52 @@ function fillAddressForm(address) {
 
 }
 
+
+async function addAddress() {
+
+    const payload = {
+        full_name: document.getElementById('addr-name').value.trim(),
+        phone: document.getElementById('addr-phone').value.trim(),
+        city: document.getElementById('addr-city').value.trim(),
+        address: document.getElementById('addr-detail').value.trim(),
+        default: document.getElementById('addr-default').checked
+    };
+
+    if (!payload.full_name || !payload.phone || !payload.address) {
+        alert("Vui lòng nhập đầy đủ thông tin!");
+        return;
+    }
+    try {
+
+        const response = await fetchWithAuth(`${CONFIG.API_BASE_URL}/api/address/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            alert("Thêm địa chỉ thất bại");
+            console.log(data);
+            return;
+        }
+
+        alert("Thêm địa chỉ thành công");
+
+        loadAddress();
+
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addressModal'));
+        modal.hide();
+
+        document.getElementById("address-form").reset();
+
+    } catch (error) {
+        console.error("Add address error:", error);
+    }
+}
 
 async function loadCartCheckout() {
     const template = document.getElementById("template-checkout");

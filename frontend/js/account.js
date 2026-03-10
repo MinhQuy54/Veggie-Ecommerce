@@ -92,7 +92,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const modalInstance = new bootstrap.Modal(modalEl);
         modalInstance.show();
 
-        fetch(`${CONFIG.API_BASE_URL}/api/address/${id}/`)
+        fetchWithAuth(`${CONFIG.API_BASE_URL}/api/address/${id}/`)
             .then(res => res.json())
             .then(addr => {
                 document.getElementById('addr-name').value = addr.full_name;

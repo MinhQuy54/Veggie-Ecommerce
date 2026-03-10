@@ -526,7 +526,7 @@ class CheckoutList(APIView):
             payment_method=payment_method,
             transaction_id="",
             amount=total_price,
-            status=0
+            status=1
         )
 
         if payment_method.lower() == "momo":

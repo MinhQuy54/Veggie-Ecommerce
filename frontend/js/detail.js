@@ -56,7 +56,7 @@ async function loadProducts(apiUrl) {
 
     productContainer.innerHTML = `
         <div class="text-center w-100 py-5">
-            <div class="spinner-border text-success">Đang tải sản phẩm...</div>
+            <div class="spinner-border text-success"></div>
         </div>`;
 
     try {
