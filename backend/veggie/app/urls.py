@@ -24,4 +24,5 @@ urlpatterns = [
     path('wish/toggle/', WishToggle.as_view()),
     path('checkout/', CheckoutList.as_view()),
     path('search/', SearchListView.as_view()),
+    path('order/', OrderList.as_view()),
 ]

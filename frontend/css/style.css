@@ -677,3 +677,61 @@ body {
     border-radius: 50%;
     font-weight: bold;
 }
+
+/* Container bao quanh nút và khung chat */
+.chat-wrapper {
+    position: fixed;
+    bottom: 30px;
+    /* Khoảng cách từ dưới lên */
+    right: 30px;
+    /* Khoảng cách từ phải sang */
+    z-index: 9999;
+    /* Đảm bảo luôn nằm trên cùng */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Nút hình tròn (giống trong ảnh bạn gửi) */
+#chat-circle {
+    width: 60px;
+    height: 60px;
+    background-color: var(--primary-green);
+    /* Màu xanh lá tương tự ảnh */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+#chat-circle:hover {
+    transform: scale(1.1);
+    background-color: var(--primary-green);
+}
+
+#chat-circle .material-symbols-outlined {
+    font-size: 30px;
+    color: white;
+}
+
+/* Khung chat box */
+.chat-box {
+    position: absolute;
+    bottom: 70px;
+    /* Nằm phía trên nút chat */
+    right: 0;
+    width: 320px;
+    height: 400px;
+    background: white;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+/* Hiệu ứng ẩn/hiện */
+.d-none {
+    display: none !important;
+}

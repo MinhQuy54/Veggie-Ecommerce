@@ -231,3 +231,50 @@ document.addEventListener("DOMContentLoaded", function () {
     fetchUserProfile();
     fetchAddresses();
 });
+
+
+/// ORDER
+
+async function loadOrder() {
+    const OrderTableContainer = document.getElementById("order-table");
+
+    try {
+        const response = await fetchWithAuth(`${CONFIG.API_BASE_URL}/api/order/`,
+            {
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error("Không có đơn đặt nào!");
+        }
+
+        const data = await response.json();
+        OrderTableContainer.innerHTML = '';
+        if (!data || data.length === 0) {
+            OrderTableContainer.innerHTML =
+                `<tr>
+                    <td colspan="4" class="py-4 text-muted" id="order-table">Bạn chưa có đơn
+                     hàng nào.</td>
+                </tr>`;
+        }
+        data.forEach(order => {
+            const tr = document.createElement('tr');
+            const price = parseFloat(order.total_price);
+            tr.innerHTML = `
+                <td>#${order.id}</td>
+                <td>${new Date(order.created_at).toLocaleString("vi-VN")}</td>
+                <td>${order.status === 0 ? 'Chưa thanh toán' : 'Đã thanh toán'}</td>
+                <td>${price.toLocaleString('vi-VN')}đ</td>
+                
+                `;
+            OrderTableContainer.appendChild(tr);
+        })
+    } catch {
+
+    }
+}
+
+document.addEventListener("DOMContentLoaded", loadOrder);

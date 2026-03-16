@@ -509,7 +509,7 @@ class CheckoutList(APIView):
             user=user,
             shipping_address=address,
             total_price=total_price,
-            status=0
+            status=1
         )
         
         for item in cart_items:
@@ -574,3 +574,11 @@ class SearchListView(APIView):
         
         return paginator.get_paginated_response(serializer.data)
         # return Response(serializer.data)
+
+
+class OrderList(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        order = Order.objects.filter(user=request.user)
+        serializer = OrderSerializer(order,many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

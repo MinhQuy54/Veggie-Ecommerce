@@ -9,7 +9,7 @@ def create_momo_payment(amount, order_id):
 
     requestId = str(uuid.uuid4())
     orderInfo = "Thanh toan don hang"
-    redirectUrl = "http://127.0.0.1:5500/frontend/index.html"
+    redirectUrl = "https://veggie-ecommerce.vercel.app/index.html"
     ipnUrl = "https://webhook.site/xxxxxx"
     requestType = "payWithMethod"
     extraData = ""
