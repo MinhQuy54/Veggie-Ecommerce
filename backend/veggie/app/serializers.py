@@ -134,9 +134,8 @@ class LoginSerializer(serializers.ModelSerializer):
         return data
     
 class RegisterSerializer(serializers.ModelSerializer):
-    firstname = serializers.CharField(
-    )
-    lastname = serializers.CharField()
+    firstname = serializers.CharField(write_only=True)
+    lastname = serializers.CharField(write_only=True)
     password = serializers.CharField(
         min_length=6,
         style = {'input_type' : 'password'},  
