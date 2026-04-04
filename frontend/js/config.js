@@ -1,7 +1,7 @@
 const CONFIG = {
     // API_BASE_URL: 'http://127.0.0.1:8080',
-    API_BASE_URL: 'http://127.0.0.1:8000',
-    // API_BASE_URL: 'https://veggie-ecommerce-1.onrender.com',
+    // API_BASE_URL: 'http://127.0.0.1:8000',
+    API_BASE_URL: 'https://veggie-ecommerce-1.onrender.com',
     PAGE_SIZE: 6
 };
 
