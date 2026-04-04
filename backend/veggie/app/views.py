@@ -1,12 +1,12 @@
-from django.shortcuts import render,redirect,get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import Http404
 from .models import *
 from .serializers import *
 from rest_framework import status
-from rest_framework.decorators import APIView
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate
 from .momo import create_momo_payment
 
@@ -16,9 +16,20 @@ from django.conf import settings
 
 # pagination
 from .pagination import ProductPagination
-from .utils.send_emails import send_email
+
+# redis
+from django.core.cache import cache
+import requests
+from django.contrib import messages
+from django.db.models import Q
 
 # Create your views here.
+
+
+def build_frontend_url(path):
+    base_url = settings.FRONTEND_URL.rstrip("/")
+    normalized_path = path if path.startswith("/") else f"/{path}"
+    return f"{base_url}{normalized_path}"
 
 class CateogoryList(APIView):
     def get(self, requets):
@@ -78,27 +89,37 @@ class ProductImageList(APIView):
 
 class LoginView(APIView):
     def post(self, request):
-        identifier = request.data.get('username')  # email hoặc username
-        password = request.data.get('password')
+        serializer = LoginSerializer(data=request.data)
 
-        if not identifier or not password:
-            return Response(
-                {"detail": "Thiếu thông tin đăng nhập"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        username = serializer.validated_data.get('username')
+        password = serializer.validated_data.get('password')
 
+        if not username or not password:
+            return Response({
+                "detail" : "Thiếu thông tin đăng nhập"}, status=status.HTTP_400_BAD_REQUEST)
+
+        matched_user = User.objects.filter(
+            Q(username=username) | Q(email=username)
+        ).first()
+        
         user = authenticate(
             request,
-            username=identifier,
+            username=username,
             password=password
         )
 
         if not user:
+            if matched_user and not matched_user.is_active:
+                return Response(
+                    {"error": "Tài khoản chưa được kích hoạt. Vui lòng kiểm tra email hoặc đăng ký lại."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             return Response(
-                {"non_field_error": ["Sai tài khoản hoặc mật khẩu"]},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
+                {"error": "Sai tài khoản hoặc mật khẩu"}, status=status.HTTP_400_BAD_REQUEST)
+        
         refresh = RefreshToken.for_user(user)
 
         return Response({
@@ -108,64 +129,34 @@ class LoginView(APIView):
             "email": user.email,
         }, status=status.HTTP_200_OK)
     
+    
 class RegisterView(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
-        first_name = request.data.get('fname')
-        last_name = request.data.get('lname')
-        email = request.data.get('email')
-        password = request.data.get('password')
+        serializer = RegisterSerializer(data=request.data)
+        
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        data = serializer.validated_data
 
-        if User.objects.filter(email=email).exists():
+        if User.objects.filter(email=data['email']).exists():
             return Response(
                 {"error": "Email đã tồn tại"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-        # activation_token = str(uuid.uuid4())
-
+        
         user = User.objects.create_user(
-            username=email,
-            email=email,
-            password=password,
-            first_name=first_name,
-            last_name=last_name,
-            is_active=True 
+            username=data['username'],
+            email=data['email'],
+            password=data['password'],
+            first_name=data.get('firstname', ''), 
+            last_name=data.get('lastname', ''),   
         )
-
+        
         return Response({
-            "message": "Đăng ký thành công"
+            "message": "Đăng ký thành công 🎉"
         }, status=status.HTTP_201_CREATED)
-        # user.activation_token = activation_token
-        # user.save()
-
-        # activation_link = f"https://veggie-ecommerce-1.onrender.com/api/auth/activate/{activation_token}/"
-
-        # send_mail(
-        #     subject="Kích hoạt tài khoản Veggie",
-        #     message=f"Nhấn vào link để kích hoạt tài khoản:\n{activation_link}",
-        #     from_email=settings.DEFAULT_FROM_EMAIL,
-        #     recipient_list=[email],
-        #     fail_silently=False
-        # )
-
-        # return Response(
-        #     {"message": "Đăng ký thành công. Vui lòng kiểm tra email để kích hoạt tài khoản"},
-        #     status=status.HTTP_201_CREATED
-        # )
-
-
-        # link = f"https://veggie-ecommerce-1.onrender.com/api/auth/activate/{activation_token}/"
-
-        # html = f"""
-        # <h2>Kích hoạt tài khoản</h2>
-        # <p>Bấm vào link dưới đây:</p>
-        # <a href="{link}">Activate Account</a>
-        # """
-
-        # send_email(email, "Activate account", html)
-
-        # return Response({"message": "Check email to activate"})
-
 
 
 class ActivateAccountView(APIView):
@@ -173,111 +164,63 @@ class ActivateAccountView(APIView):
         user = User.objects.filter(activation_token=token).first()
 
         if not user:
-            return redirect(
-                "https://veggie-ecommerce.vercel.app/login.html?activated=error"
-            )
+            return redirect(build_frontend_url("/login.html?activated=error"))
 
         user.is_active = True
         user.activation_token = None
         user.save()
 
-        return redirect(
-            "https://veggie-ecommerce.vercel.app/login.html?activated=success"
-        )
-    
+        return redirect(build_frontend_url("/login.html?activated=success"))
+
 class RequestResetPasswordView(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
         email = request.data.get('email')
 
         if not email:
             return Response({"error": "Vui lòng nhập email"}, status=400)
-
+        
         user = User.objects.filter(email=email).first()
 
         if not user:
             return Response({"error": "Email không tồn tại"}, status=400)
-
+        
         token = str(uuid.uuid4())
-
         user.reset_token = token
         user.reset_token_created = int(time.time())
         user.save()
 
-        reset_link = f"https://veggie-ecommerce.vercel.app/resetpass.html?token={token}"
-        # reset_link = f"http://127.0.0.1:5500/frontend/resetpass.html?token={token}"
-
+        reset_link = f"/resetpass.html?token={token}"
         return Response({
             "message": "Link reset password",
             "reset_link": reset_link
         })
-# class RequestResetPasswordView(APIView):
-#     def post(self, request):
-#         email = request.data.get('email')
-#         new_password = request.data.get('new_password')
-
-#         if not email:
-#             return Response(
-#                 {"error": "Vui lòng nhập email"},
-#                 status=status.HTTP_400_BAD_REQUEST
-#             )
-#         user = User.objects.filter(email=email).first()
-
-#         if not user:
-#             return Response(
-#                 {"error": "Email không tồn tại"},
-#                 status=status.HTTP_400_BAD_REQUEST
-#             )
-#         user.set_password(new_password)
-#         user.save()
-
-#         return Response(
-#             {"message": "Đổi mật khẩu thành công"},
-#             status=status.HTTP_200_OK
-#         )
-        
-        # token = str(uuid.uuid4())
-        # user.reset_token = token
-        # user.save()
-
-        # reset_link = f"https://veggie-ecommerce.vercel.app/resetpass.html?token={token}"
-
-        # send_mail(
-        #     subject="Reset mật khẩu Veggie",
-        #     message=f"Nhấn vào link để đặt lại mật khẩu:\n{reset_link}",
-        #     from_email=settings.DEFAULT_FROM_EMAIL,
-        #     recipient_list=[email],
-        # )
-        # return Response(
-        #     {"message": "Đã gửi email reset mật khẩu"},
-        #     status=status.HTTP_200_OK
-        # )
     
-class ResetPasswordConfirmView(APIView):
-
+class ResetPasswordView(APIView):
     def post(self, request):
-
-        token = request.data.get("token")
-        password = request.data.get("password")
+        serializer = PasswordFieldSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        token = request.data.get('token')
+        password = serializer.validated_data.get('password')
         confirm = request.data.get("confirm_password")
 
         if not token or not password or not confirm:
             return Response({"error": "Thiếu dữ liệu"}, status=400)
-
+        
         if password != confirm:
             return Response({"error": "Mật khẩu không khớp"}, status=400)
-
+        
         user = User.objects.filter(reset_token=token).first()
 
         if not user:
             return Response({"error": "Token không hợp lệ"}, status=400)
-
+        
         user.set_password(password)
         user.reset_token = None
         user.reset_token_created = None
         user.save()
-
         return Response({"message": "Reset password thành công"})
-    
 
 class UserList(APIView):
     permission_classes = [IsAuthenticated]
@@ -287,36 +230,50 @@ class UserList(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         
     
+
 class UserDetail(APIView):
     permission_classes = [IsAuthenticated]
+    
     def put(self, request):
         user = request.user
+
         current_password = request.data.get('current_password')
         new_password = request.data.get('new_password')
-        
-        if current_password and new_password:
+        confirm_password = request.data.get('confirm_password')
+
+        serializer = UserSerializer(user, data=request.data, partial=True)
+
+        if any([current_password, new_password, confirm_password]):
+
+            password_serializer = ChangePasswordSerializer(data=request.data)
+
+            if not password_serializer.is_valid():
+                return Response(
+                    password_serializer.errors,
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            validated = password_serializer.validated_data
+            current_password = validated['current_password']
+            new_password = validated['new_password']
+
             if not user.check_password(current_password):
-                return Response({"error": "Mật khẩu hiện tại không chính xác"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": "Mật khẩu hiện tại không chính xác"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             user.set_password(new_password)
             user.save()
-        serializer = UserSerializer(user, data=request.data, partial=True)
+
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response({
+                "message": "Cập nhật thành công",
+                "user": serializer.data
+            }, status=status.HTTP_200_OK)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    # def get_obj(self, request, pk):
-    #     try:
-    #         return User.objects.get(pk=pk)
-    #     except User.DoesNotExist:
-    #         raise Http404()
-        
-    # def put(self, request, pk):
-    #     user = self.get_obj(pk=pk)
-    #     serializer = UserSerializer(user, data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data)
-    #     return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
+    
 
 
 class AddressList(APIView):
@@ -335,17 +292,17 @@ class AddressList(APIView):
     
 class AddressDetail(APIView):
     permission_classes = [IsAuthenticated]
-    def get_obj(self, pk):
+    def get_obj(self, pk, user):
         try:
-            return ShippingAddress.objects.get(pk=pk)
+            return ShippingAddress.objects.get(pk=pk, user=user)
         except ShippingAddress.DoesNotExist:
             raise Http404()
     def get(self, request, pk):
-        address = self.get_obj(pk)
+        address = self.get_obj(pk, request.user)
         serializer = ShippingAddressSerializer(address)
         return Response(serializer.data)
     def put(self, request,pk):
-        address = self.get_obj(pk)
+        address = self.get_obj(pk, request.user)
         serializer = ShippingAddressSerializer(address,data=request.data)
 
         if serializer.is_valid():
@@ -353,8 +310,8 @@ class AddressDetail(APIView):
             return Response(serializer.data)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
-    def delete(self, requst,pk):
-        address = self.get_obj(pk)
+    def delete(self, request,pk):
+        address = self.get_obj(pk, request.user)
         address.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     
@@ -410,19 +367,19 @@ class CartList(APIView):
 
 class CartDetail(APIView):
     permission_classes = [IsAuthenticated]
-    def get_obj(self, pk):
+    def get_obj(self, pk, user):
         try:
-            return CartItem.objects.get(pk=pk)
+            return CartItem.objects.get(pk=pk, user=user)
         except CartItem.DoesNotExist:
             raise Http404()
     
     def get(self, request, pk):
-        item = self.get_obj(pk)
+        item = self.get_obj(pk, request.user)
         serializer = CartSerializer(item)
         return Response(serializer.data)
     
     def put(self, request, pk):
-        item = self.get_obj(pk)
+        item = self.get_obj(pk, request.user)
         serializer = CartSerializer(item, data=request.data, partial=True)
 
         if serializer.is_valid():
@@ -431,7 +388,7 @@ class CartDetail(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request,pk):
-        item = self.get_obj(pk)
+        item = self.get_obj(pk, request.user)
         item.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -454,18 +411,18 @@ class WishList(APIView):
 
 class WishDetail(APIView):
     permission_classes = [IsAuthenticated]
-    def get_obj(self, pk):
+    def get_obj(self, pk, user):
         try:
-            return Wishlist.objects.get(pk=pk)
+            return Wishlist.objects.get(pk=pk, user=user)
         except Wishlist.DoesNotExist:
             raise Http404()
     def get(self, request, pk):
-        wish = self.get_obj(pk)
+        wish = self.get_obj(pk, request.user)
         serializer = WishListSerializer(wish)
         return Response(serializer.data)
 
-    def delete(self, requst,pk):
-        wish = self.get_obj(pk)
+    def delete(self, request,pk):
+        wish = self.get_obj(pk, request.user)
         wish.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -496,6 +453,9 @@ class CheckoutList(APIView):
         address = serializer.validated_data['shipping_address']
         payment_method = serializer.validated_data['payment_method']
         total_price = 15000
+
+        if address.user != user:
+            return Response({"error": "Địa chỉ giao hàng không hợp lệ"}, status=403)
 
         cart_items = CartItem.objects.filter(user=user)
 
@@ -564,10 +524,11 @@ class SearchListView(APIView):
     def get(self, request):
         key = request.query_params.get('q')
         queryset = Product.objects.all()
+        product = queryset
 
         if key:
             product = queryset.filter(name__icontains=key)
-        serializer = ProductSerializer(product, many=True)
+
         paginator = ProductPagination()
         paginated_products = paginator.paginate_queryset(product, request)
         serializer = ProductSerializer(paginated_products, many=True)
@@ -582,3 +543,173 @@ class OrderList(APIView):
         order = Order.objects.filter(user=request.user)
         serializer = OrderSerializer(order,many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class OrderDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            order = Order.objects.get(pk=pk, user=request.user)
+            serializer = OrderDetailSerializer(order)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Order.DoesNotExist:
+            return Response({"error": "Đơn hàng không tồn tại"}, status=status.HTTP_404_NOT_FOUND)
+    
+    def post(self, request, pk):
+        try:
+            order = Order.objects.get(pk=pk,user=request.user)
+
+            if order.status not in [1,2]:
+                return Response({"error": "Không thể hủy đơn"}, status=400)
+            
+            for item in order.items.all():
+                product = item.product
+                product.stock += item.quantity
+                product.save()
+            order.status = 5
+            order.save()
+            return Response({"message": "Đã hủy đơn"})
+        except Order.DoesNotExist:
+            return Response({"error": "Không tìm thấy đơn"}, status=404)
+
+
+class ContactList(APIView):
+
+    def post(self, request):
+        serializers = ContactSerializer(data=request.data)
+
+        if serializers.is_valid():
+            contact = serializers.save()
+
+            admins = User.objects.filter(is_staff = True)
+            for admin in admins:
+                Notification.objects.create(
+                    user=admin,
+                    type="CONTACT",
+                    message=f"Liên hệ mới từ {contact.full_name}"
+                )
+            return Response({
+                "message": "Gửi liên hệ thành công"
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializers.errors, status=400)
+
+def admin_contact_view(request):
+    contacts = Contact.objects.all().order_by('-created_at')
+    selected_contact = None
+
+    contact_id = request.GET.get('id')
+    if contact_id:
+        selected_contact = get_object_or_404(Contact, id=contact_id)
+
+    if request.method == "POST":
+        contact_id = request.POST.get('contact_id')
+        reply_content = request.POST.get('reply_content')
+
+        contact = get_object_or_404(Contact, id=contact_id)
+
+        send_mail(
+            subject="Phản hồi từ Veggie Shop",
+            message=reply_content,
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[contact.email],
+            fail_silently=False,
+        )
+
+        contact.reply_content = reply_content
+        contact.is_reply = True
+        contact.save()
+
+        messages.success(request, "Đã gửi phản hồi thành công!")
+
+        return redirect(f"/admin/contacts?id={contact.id}")
+
+    return render(request, "admin/contact_reply.html", {
+        "contacts": contacts,
+        "selected_contact": selected_contact
+    })
+    
+
+class GHNProxyBase(APIView):
+    permission_classes = [IsAuthenticated]
+    ghn_headers = {
+        "Token" : settings.GHN_TOKEN,
+        "Content-Type" : "application/json"
+    }
+    if settings.GHN_SHOP_ID:
+        ghn_headers["ShopId"] = str(settings.GHN_SHOP_ID)
+
+    def request_ghn(self, method, endpoint, payload=None):
+        url = f"{settings.GHN_API_URL}{endpoint}"
+        try: 
+            response = requests.request(
+                method=method,
+                url=url,
+                headers=self.ghn_headers,
+                json=payload,
+                timeout=15
+            )
+            data = response.json()
+        except requests.RequestException as exc:
+            return Response({
+                "message" : f"Không kết nối được GHN: {exc}"
+            }, status=status.HTTP_502_BAD_GATEWAY)
+        except ValueError:
+            return Response(
+                {"message": "GHN trả về dữ liệu không hợp lệ."},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        return Response(data, status=response.status_code)
+    
+class GetProvincesView(GHNProxyBase):
+    def get(self, request):
+        cache_key = "ghn_provinces"
+
+        data = cache.get(cache_key)
+        if data:
+            return Response(data)
+        response = self.request_ghn("GET", "province")
+        if response.status_code == status.HTTP_200_OK:
+            data = response.data
+            cache.set(cache_key, data, timeout=86400)
+        return response
+    
+
+class GetDistrictsView(GHNProxyBase):
+    def post(self, request):
+        province_id = request.data.get('province_id')
+        if not province_id:
+            return Response({"message": "Thiếu province_id"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        cache_key = f"ghn_districts_{province_id}"
+
+        data = cache.get(cache_key)
+        if data:
+            return Response(data)
+
+        payload = {"province_id": int(province_id)}
+        response = self.request_ghn("POST", "district", payload)
+        if response.status_code == status.HTTP_200_OK:
+            data = response.data
+            cache.set(cache_key, data, timeout=86400)
+        return response
+
+class GetWardsView(GHNProxyBase):
+    def post(self, request):
+        district_id = request.data.get('district_id')
+
+        if not district_id:
+            return Response({"message": "Thiếu district_id"}, status=400)
+
+        cache_key = f"ghn_wards_{district_id}"
+
+        data = cache.get(cache_key)
+        if data:
+            return Response(data)
+
+        payload = {"district_id": int(district_id)}
+        response = self.request_ghn("POST", "ward", payload)
+        if response.status_code == status.HTTP_200_OK:
+            data = response.data
+            cache.set(cache_key, data, timeout=86400)
+        return response

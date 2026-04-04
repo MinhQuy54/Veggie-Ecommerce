@@ -15,7 +15,7 @@ async function fetchWithAuth(url, options = {}) {
     if (response.status === 401) {
 
         const refreshRes = await fetch(
-            `${CONFIG.API_BASE_URL}/api/auth/token/refresh/`,
+            buildApiUrl('/api/auth/token/refresh/'),
             {
                 method: "POST",
                 headers: {
@@ -46,8 +46,10 @@ async function fetchWithAuth(url, options = {}) {
 
             localStorage.removeItem("access_token");
             localStorage.removeItem("refresh_token");
+            localStorage.removeItem("username");
+            localStorage.removeItem("email");
 
-            window.location.href = "/login.html";
+            window.location.href = "login.html";
 
         }
     }

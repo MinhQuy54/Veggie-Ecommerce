@@ -1,15 +1,26 @@
 fetch('header.html')
     .then(res => res.text())
     .then(html => {
-        document.getElementById("header").innerHTML = html;
-        updateHoverMenu();
+        const headerContainer = document.getElementById("header");
+        if (!headerContainer) {
+            return;
+        }
 
-    }
-    )
+        headerContainer.innerHTML = html;
+        updateHoverMenu();
+    })
+    .catch(error => {
+        console.error("Không thể tải header:", error);
+    });
+
 function updateHoverMenu() {
     const accessToken = localStorage.getItem("access_token");
     const authText = document.getElementById("auth-status-text");
     const personLink = document.getElementById("person-link");
+
+    if (!authText || !personLink) {
+        return;
+    }
 
     if (accessToken) {
         // TRƯỜNG HỢP: ĐÃ LOGIN
@@ -21,7 +32,9 @@ function updateHoverMenu() {
         authText.onclick = function (e) {
             e.preventDefault();
             localStorage.clear(); // Xóa sạch token
-            alert("Bạn đã đăng xuất!");
+            if (window.antd?.message?.success) {
+                antd.message.success("Bạn đã đăng xuất!");
+            }
             window.location.reload(); // Load lại trang để cập nhật giao diện
         };
 
@@ -33,4 +46,3 @@ function updateHoverMenu() {
         personLink.href = "login.html";
     }
 }
-

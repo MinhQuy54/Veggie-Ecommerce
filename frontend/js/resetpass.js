@@ -1,117 +1,114 @@
-const resetForm = document.getElementById("resetForm");
+const requestForm = document.getElementById('requestForm');
+const resetForm = document.getElementById('resetForm');
 
-if (resetForm) {
-    resetForm.addEventListener("submit", function (e) {
-
+if (requestForm) {
+    requestForm.addEventListener("submit", async function (e) {
         e.preventDefault();
 
-        const email = document.getElementById("email").value;
+        const email = document.getElementById('email').value;
 
-        fetch(`${CONFIG.API_BASE_URL}/api/auth/reset-password/`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email })
-        })
-            .then(res => res.json())
-            .then(data => {
+        const hideLoading = antd.message.loading('Đang gửi yêu cầu...', 0);
 
-                if (data.reset_link) {
-
-                    document.getElementById("resetLinkBox").innerHTML = `
-                        <div class="alert alert-success mt-4 text-center shadow-sm">
-                            <h6 class="fw-bold mb-2">Reset link created</h6>
-
-                            <p class="small text-muted mb-3">
-                                Click the button below to reset your password
-                            </p>
-
-                            <a href="${data.reset_link}" 
-                            target="_blank" 
-                            class="btn btn-success px-4 py-2 fw-bold"
-                            style="background:#82B400;border:none;border-radius:4px;">
-                                Reset Password
-                            </a>
-                        </div>
-                        `;
-
-                } else {
-
-                    alert(data.error);
-
-                }
-
+        try {
+            const res = await fetch('/api/auth/reset-password/', {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email })
             });
+
+            const data = await res.json();
+            hideLoading();
+
+            if (res.ok && data.reset_link) {
+                antd.notification.success({
+                    message: 'Yêu cầu được chấp thuận',
+                    description: React.createElement('div', null,
+                        'Ấn vào link để reset: ',
+                        React.createElement('a', {
+                            href: data.reset_link,
+                            target: '_blank',
+                            style: { color: '#89b500', fontWeight: 'bold' }
+                        }, 'Đặt lại mật khẩu')
+                    ),
+                    placement: 'topRight',
+                    duration: 10
+                });
+            } else {
+                antd.message.error(data.detail || "Email không tồn tại!");
+            }
+        } catch (error) {
+            hideLoading();
+            antd.message.error("Lỗi kết nối máy chủ!");
+        }
     });
 }
 
 
+if (resetForm) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
 
-const loginForm = document.getElementById("loginForm");
-
-if (loginForm) {
-
-    const token = new URLSearchParams(window.location.search).get("token");
-
-    loginForm.addEventListener("submit", function (e) {
-
+    resetForm.addEventListener("submit", async function (e) {
         e.preventDefault();
 
         const password = document.getElementById("password").value;
-        const confirm = document.getElementById("cofirmpassword").value;
+        const confirm = document.getElementById("confirm_password").value;
+
+        const hasUpperCase = /[A-Z]/.test(password);
+        const hasLowerCase = /[a-z]/.test(password);
+        const hasNumber = /[0-9]/.test(password);
+
+        if (password.length < 6) {
+            antd.message.error("Mật khẩu phải có ít nhất 6 ký tự!");
+            return;
+        }
+        if (!hasUpperCase || !hasLowerCase || !hasNumber) {
+            antd.message.warning("Mật khẩu cần có chữ hoa, chữ thường và số!");
+            return;
+        }
 
         if (!token) {
-            alert("Link reset không hợp lệ");
+            antd.message.error("Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn!");
             return;
         }
 
         if (password !== confirm) {
-            alert("Mật khẩu không khớp");
+            antd.message.error("Mật khẩu xác nhận không khớp!");
             return;
         }
 
-        fetch(`${CONFIG.API_BASE_URL}/api/auth/reset-password-confirm/`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                token: token,
-                password: password,
-                confirm_password: confirm
-            })
-        })
-            .then(res => res.json())
-            .then(data => {
+        const hideLoading = antd.message.loading('Đang cập nhật mật khẩu...', 0);
 
-                alert(data.message || data.error);
-
-                if (data.message) {
-                    window.location.href = "login.html";
-                }
-
+        try {
+            const res = await fetch('/api/auth/reset-password/confirm/', {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    token: token,
+                    password: password,
+                    confirm_password: confirm
+                })
             });
+
+            const data = await res.json();
+            hideLoading();
+
+            if (res.ok) {
+                antd.notification.success({
+                    message: 'Thành công!',
+                    description: 'Mật khẩu của bạn đã được cập nhật. Hệ thống sẽ chuyển về trang đăng nhập sau 2 giây.',
+                    placement: 'topRight',
+                });
+
+                setTimeout(() => {
+                    window.location.href = "login.html";
+                }, 2000);
+            } else {
+                antd.message.error(data.error || data.detail || "Cập nhật thất bại!");
+            }
+        } catch (error) {
+            hideLoading();
+            antd.message.error("Lỗi kết nối đến server!");
+        }
     });
 }
-// // ===== CONFIRM RESET PASSWORD ======
-// const loginForm = document.getElementById("loginForm");
-// if (loginForm) {
-//     const token = new URLSearchParams(window.location.search).get("token");
-
-//     loginForm.addEventListener("submit", function (e) {
-//         e.preventDefault();
-
-//         const password = document.getElementById("password").value;
-//         const confirm = document.getElementById("cofirmpassword").value;
-
-//         fetch("http://127.0.0.1:8000/api/auth/reset-password-confirm/", {
-//             method: "POST",
-//             headers: { "Content-Type": "application/json" },
-//             body: JSON.stringify({
-//                 token: token,
-//                 password: password,
-//                 confirm_password: confirm
-//             })
-//         })
-//             .then(res => res.json())
-//             .then(data => alert(data.message || data.error));
-//         window.location.href = "login.html";
-//     });
-// }

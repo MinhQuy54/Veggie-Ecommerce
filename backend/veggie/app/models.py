@@ -24,6 +24,7 @@ class User(AbstractUser):
     google_id = models.CharField(max_length=255, blank=True, null=True)
     activation_token = models.CharField(max_length=255, blank=True, null=True)
     reset_token = models.CharField(max_length=255, blank=True, null=True)
+    reset_token_created = models.BigIntegerField(blank=True, null=True)
     
     role = models.ForeignKey('Role', on_delete=models.SET_NULL, null=True)
 
@@ -38,6 +39,9 @@ class ShippingAddress(models.Model):
     phone = models.CharField(max_length=15)
     address = models.TextField()
     city = models.CharField(max_length=100)
+    province_id = models.PositiveIntegerField(blank=True, null=True)
+    district_id = models.PositiveIntegerField(blank=True, null=True)
+    ward_code = models.CharField(max_length=50, blank=True, null=True)
     default = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -141,3 +145,5 @@ class Contact(models.Model):
     email = models.EmailField()
     message = models.TextField()
     is_reply = models.BooleanField(default=False)
+    reply_content = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)

@@ -65,7 +65,7 @@ async function updateCartBadge() {
 
     try {
 
-        const response = await fetchWithAuth(`${CONFIG.API_BASE_URL}/api/cart/`)
+        const response = await fetchWithStoredAuth(buildApiUrl('/api/cart/'));
 
         if (!response.ok) {
             badge.innerText = 0;
@@ -99,7 +99,7 @@ async function loadMiniCart() {
 
     try {
 
-        const response = await fetchWithAuth(`${CONFIG.API_BASE_URL}/api/cart/`);
+        const response = await fetchWithStoredAuth(buildApiUrl('/api/cart/'));
 
         if (!response.ok) {
             throw new Error("Không tìm thấy giỏ hàng");
@@ -123,7 +123,7 @@ async function loadMiniCart() {
 
             let imageUrl = "img/bag-filled.png";
             if (product.images && product.images.length > 0) {
-                imageUrl = CONFIG.API_BASE_URL + product.images[0].image;
+                imageUrl = buildAssetUrl(product.images[0].image);
             }
             const removeBtn = clone.querySelector(".remove-item-btn");
             removeBtn.setAttribute("data-id", cart.id);
@@ -151,13 +151,13 @@ async function removeItemMiniCart(id) {
 
     const token = localStorage.getItem("access_token");
     if (!token) {
-        alert("Vui lòng đăng nhập");
+        showMessage("warning", "Vui lòng đăng nhập");
         return;
     }
 
     try {
 
-        const response = await fetchWithAuth(`${CONFIG.API_BASE_URL}/api/cart/${id}/`, {
+        const response = await fetchWithStoredAuth(buildApiUrl(`/api/cart/${id}/`), {
             method: "DELETE"
         });
 
@@ -187,14 +187,14 @@ async function loadCart() {
     const token = localStorage.getItem("access_token");
     if (!cartContainer || !template) return;
     if (!token) {
-        alert("Vui long dang nhap de xem gio hang");
+        showMessage("warning", "Vui lòng đăng nhập để xem giỏ hàng");
         window.location.href = "login.html";
         return;
     }
 
     try {
 
-        const response = await fetchWithAuth(`${CONFIG.API_BASE_URL}/api/cart/`);
+        const response = await fetchWithStoredAuth(buildApiUrl('/api/cart/'));
 
         if (!response.ok) {
             throw new Error("Khong tim thay san pham");
@@ -228,7 +228,7 @@ async function loadCart() {
 
             let imageUrl = "img/bag-filled.png";
             if (product.images && product.images.length > 0) {
-                imageUrl = CONFIG.API_BASE_URL + product.images[0].image;
+                imageUrl = buildAssetUrl(product.images[0].image);
             }
 
             const removeBtn = clone.querySelector(".btn-remove-item");
@@ -270,12 +270,12 @@ async function removeCartItem(id) {
 
     const token = localStorage.getItem("access_token");
     if (!token) {
-        alert("Vui lòng đăng nhập");
+        showMessage("warning", "Vui lòng đăng nhập");
         return;
     }
 
     try {
-        const response = await fetchWithAuth(`${CONFIG.API_BASE_URL}/api/cart/${id}/`, {
+        const response = await fetchWithStoredAuth(buildApiUrl(`/api/cart/${id}/`), {
             method: "DELETE"
         });
 
@@ -307,7 +307,7 @@ async function changeQty(button, cartId, amount) {
     qtyInput.value = currentQty;
 
     try {
-        const response = await fetchWithAuth(`${CONFIG.API_BASE_URL}/api/cart/${cartId}/`, {
+        const response = await fetchWithStoredAuth(buildApiUrl(`/api/cart/${cartId}/`), {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",

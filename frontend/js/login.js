@@ -1,57 +1,69 @@
-document.getElementById("loginForm").addEventListener("submit", async function (e) {
-    e.preventDefault();
+const loginForm = document.getElementById("loginForm");
 
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+if (loginForm) {
+    loginForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
 
-    try {
-        const response = await fetch(`${CONFIG.API_BASE_URL}/api/auth/login/`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                username: email,
-                password: password
-            })
-        });
+        const username = document.getElementById("username").value;
+        const password = document.getElementById("password").value;
+        let hideLoading = () => { };
 
-        const data = await response.json();
+        try {
+            hideLoading = showLoading('Đang xử lý đăng nhập...');
+            const response = await fetch(buildApiUrl('/api/auth/login/'), {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            });
 
-        if (!response.ok) {
-            alert(data.non_field_error?.[0] || data.detail || "Đăng nhập thất bại");
-            return;
-        }
+            const data = await response.json();
+            hideLoading();
 
-        localStorage.setItem("access_token", data.access);
-        localStorage.setItem("refresh_token", data.refresh);
-        localStorage.setItem("username", data.username);
-        localStorage.setItem("email", data.email);
+            if (!response.ok) {
+                showMessage("error", getErrorMessage(data, "Đăng nhập thất bại! Hãy kiểm tra lại thông tin"));
+                return;
+            }
 
-        alert("Đăng nhập thành công 🎉");
+            localStorage.setItem("access_token", data.access);
+            localStorage.setItem("refresh_token", data.refresh);
+            localStorage.setItem("username", data.username);
+            localStorage.setItem("email", data.email);
 
-        window.location.href = "index.html";
-
-    } catch (error) {
-        console.error(error);
-        alert("Lỗi kết nối server");
-    }
-});
-
-
-document.addEventListener("DOMContentLoaded", () => {
-    const params = new URLSearchParams(window.location.search);
-
-    if (params.get("activated") === "success") {
-        const toast = document.getElementById("toast-success");
-
-        if (toast) {
-            toast.style.display = "block";
+            showNotification("success", {
+                message: 'Đăng nhập thành công ',
+                description: 'Chào mừng bạn đến với Veggie!',
+                placement: 'topRight',
+                duration: 4
+            });
 
             setTimeout(() => {
-                toast.style.display = "none";
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }, 3000);
+                window.location.href = "index.html";
+            }, 2000);
+
+        } catch (error) {
+            console.error(error);
+            hideLoading();
+            showMessage("error", "Lỗi kết nối server!");
         }
+    });
+}
+
+window.addEventListener("load", function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const activatedStatus = urlParams.get('activated');
+
+    if (activatedStatus === 'success') {
+        showNotification("success", {
+            message: 'Kích hoạt thành công!',
+            description: 'Tài khoản của bạn đã sẵn sàng. Hãy đăng nhập ngay!',
+            placement: 'topRight'
+        });
+    } else if (activatedStatus === 'error') {
+        showMessage("error", 'Link kích hoạt không hợp lệ hoặc đã hết hạn.');
     }
 });

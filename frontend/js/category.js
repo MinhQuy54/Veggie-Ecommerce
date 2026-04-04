@@ -47,7 +47,7 @@ async function loadCategory() {
             const clone = template.content.cloneNode(true);
 
             clone.querySelector(".category-link").href =
-                `detail.html?id=${category.id}`;
+                `detail.html?id=${category.id}&name=${category.name}`;
 
             clone.querySelector(".category-img").src =
                 `${CONFIG.API_BASE_URL}${category.image}`;

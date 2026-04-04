@@ -1,19 +1,46 @@
-document.addEventListener("DOMContentLoaded", loadAddress);
-document.addEventListener("DOMContentLoaded", loadCartCheckout);
-document.getElementById("btn-place-order").addEventListener("click", placeOrder);
-document.getElementById("save-address-btn").addEventListener("click", addAddress);
 let addressList = [];
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadAddress();
+    loadCartCheckout();
+
+    const placeOrderBtn = document.getElementById("btn-place-order");
+    const saveAddressBtn = document.getElementById("save-address-btn");
+    const addressSelect = document.getElementById("address");
+
+    if (placeOrderBtn) {
+        placeOrderBtn.addEventListener("click", placeOrder);
+    }
+
+    if (saveAddressBtn) {
+        saveAddressBtn.addEventListener("click", addAddress);
+    }
+
+    if (addressSelect) {
+        addressSelect.addEventListener("change", function () {
+            const selectedId = this.value;
+
+            const selectedAddress = addressList.find(
+                item => item.id == selectedId
+            );
+
+            if (selectedAddress) {
+                fillAddressForm(selectedAddress);
+            }
+        });
+    }
+});
 
 async function loadAddress() {
 
     const token = localStorage.getItem("access_token");
     const addressSelect = document.getElementById("address");
 
-    if (!token) return;
+    if (!token || !addressSelect) return;
 
     try {
 
-        const response = await fetchWithAuth(`${CONFIG.API_BASE_URL}/api/address/`, {
+        const response = await fetchWithStoredAuth(buildApiUrl('/api/address/'), {
             headers: {
                 "Content-Type": "application/json"
             }
@@ -45,29 +72,23 @@ async function loadAddress() {
 
     } catch (error) {
         console.error("Error loading address:", error);
+        showNotification("error", {
+            message: "Lỗi",
+            description: "Không thể tải danh sách địa chỉ"
+        });
     }
 }
 
-document.getElementById("address").addEventListener("change", function () {
-
-    const selectedId = this.value;
-
-    const selectedAddress = addressList.find(
-        item => item.id == selectedId
-    );
-
-    if (selectedAddress) {
-        fillAddressForm(selectedAddress);
-    }
-
-});
-
 function fillAddressForm(address) {
+    const fullnameInput = document.getElementById("fullname");
+    const phoneInput = document.getElementById("phone");
+    const addressDetailInput = document.getElementById("address-detail");
+    const cityInput = document.getElementById("city");
 
-    document.getElementById("fullname").value = address.full_name;
-    document.getElementById("phone").value = address.phone;
-    document.getElementById("address-detail").value = address.address;
-    document.getElementById("city").value = address.city;
+    if (fullnameInput) fullnameInput.value = address.full_name;
+    if (phoneInput) phoneInput.value = address.phone;
+    if (addressDetailInput) addressDetailInput.value = address.address;
+    if (cityInput) cityInput.value = address.city;
 
 }
 
@@ -83,12 +104,15 @@ async function addAddress() {
     };
 
     if (!payload.full_name || !payload.phone || !payload.address) {
-        alert("Vui lòng nhập đầy đủ thông tin!");
+        showNotification("warning", {
+            message: "Thiếu thông tin",
+            description: "Vui lòng nhập đầy đủ thông tin!"
+        });
         return;
     }
     try {
 
-        const response = await fetchWithAuth(`${CONFIG.API_BASE_URL}/api/address/`, {
+        const response = await fetchWithStoredAuth(buildApiUrl('/api/address/'), {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -99,22 +123,36 @@ async function addAddress() {
         const data = await response.json();
 
         if (!response.ok) {
-            alert("Thêm địa chỉ thất bại");
-            console.log(data);
+            showNotification("error", {
+                message: "Lỗi",
+                description: getErrorMessage(data, "Thêm địa chỉ thất bại")
+            });
             return;
         }
 
-        alert("Thêm địa chỉ thành công");
+        showNotification("success", {
+            message: "Thành công",
+            description: "Thêm địa chỉ thành công"
+        });
 
         loadAddress();
 
         const modal = bootstrap.Modal.getInstance(document.getElementById('addressModal'));
-        modal.hide();
+        if (modal) {
+            modal.hide();
+        }
 
-        document.getElementById("address-form").reset();
+        const addressForm = document.getElementById("address-form");
+        if (addressForm) {
+            addressForm.reset();
+        }
 
     } catch (error) {
         console.error("Add address error:", error);
+        showNotification("error", {
+            message: "Lỗi hệ thống",
+            description: "Không thể thêm địa chỉ lúc này"
+        });
     }
 }
 
@@ -123,12 +161,12 @@ async function loadCartCheckout() {
     const checkoutContainer = document.getElementById("summary-checkout");
     const token = localStorage.getItem("access_token");
     let totalPrice = 15000;
-    if (!token) {
+    if (!token || !template || !checkoutContainer) {
         return;
     }
     try {
 
-        const response = await fetchWithAuth(`${CONFIG.API_BASE_URL}/api/cart/`);
+        const response = await fetchWithStoredAuth(buildApiUrl('/api/cart/'));
 
         if (!response.ok) {
             throw new Error("Khong tim thay san pham");
@@ -155,21 +193,24 @@ async function loadCartCheckout() {
         })
 
 
-    } catch { }
+    } catch (error) {
+        console.error("Checkout summary error:", error);
+    }
 }
 
 async function placeOrder() {
 
     const token = localStorage.getItem("access_token");
-    const addressId = document.getElementById("address").value;
+    const addressSelect = document.getElementById("address");
+    const addressId = addressSelect ? addressSelect.value : "";
 
     if (!token) {
-        alert("Bạn cần đăng nhập");
+        showMessage("warning", "Bạn cần đăng nhập");
         return;
     }
 
     if (!addressId) {
-        alert("Vui lòng chọn địa chỉ");
+        showMessage("warning", "Vui lòng chọn địa chỉ");
         return;
     }
 
@@ -183,9 +224,14 @@ async function placeOrder() {
         paymentMethod = "momo";
     }
 
+    if (!paymentMethod) {
+        showMessage("warning", "Vui lòng chọn phương thức thanh toán");
+        return;
+    }
+
     try {
 
-        const response = await fetchWithAuth(`${CONFIG.API_BASE_URL}/api/checkout/`, {
+        const response = await fetchWithStoredAuth(buildApiUrl('/api/checkout/'), {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -199,8 +245,10 @@ async function placeOrder() {
         const data = await response.json();
 
         if (!response.ok) {
-            alert("Checkout thất bại");
-            console.log(data);
+            showNotification("error", {
+                message: "Lỗi",
+                description: getErrorMessage(data, "Checkout thất bại")
+            });
             return;
         }
         if (data.payment_method === "momo") {
@@ -209,11 +257,18 @@ async function placeOrder() {
         }
 
 
-        alert("Đặt hàng thành công");
+        showNotification("success", {
+            message: "Thành công",
+            description: "Đặt hàng thành công"
+        });
 
         window.location.href = "index.html";
 
     } catch (error) {
         console.error("Checkout error:", error);
+        showNotification("error", {
+            message: "Lỗi hệ thống",
+            description: "Không thể đặt hàng lúc này"
+        });
     }
 }

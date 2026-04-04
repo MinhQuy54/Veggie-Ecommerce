@@ -3,10 +3,14 @@ async function loadProduct(categoryId = null) {
     const productContainer = document.getElementById('product-list');
     const template = document.getElementById('product-template');
 
+    if (!productContainer || !template) {
+        return;
+    }
+
     productContainer.innerHTML =
         '<div class="text-center w-100"><p>Đang tải sản phẩm...</p></div>';
 
-    let url = CONFIG.API_BASE_URL + '/api/product/';
+    let url = buildApiUrl(`/api/product/`);
     if (categoryId && categoryId !== 'all') {
         url += `?category_id=${categoryId}`;
     }
@@ -28,7 +32,7 @@ async function loadProduct(categoryId = null) {
             const price = parseFloat(product.price);
             let imageUrl = 'img/bag-filled.png';
             if (product.images && product.images.length > 0) {
-                imageUrl = CONFIG.API_BASE_URL + product.images[0].image;
+                imageUrl = buildAssetUrl(product.images[0].image);
             }
 
             const quickViewBtn = clone.querySelector(".quick-view-btn");

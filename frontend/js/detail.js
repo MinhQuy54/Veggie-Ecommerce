@@ -8,14 +8,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const sidebarContainer = document.getElementById('sidebar-categories');
     const sortSelect = document.getElementById('sort-select');
     const btnFilter = document.querySelector('.btn-veggie');
+    const categoryTitle = document.getElementById('category-title');
+    const breadcrumbCategory = document.getElementById('breadcrumb-category');
 
-    if (categoryName) {
-        document.getElementById('category-title').innerText = categoryName;
-        document.getElementById('breadcrumb-category').innerText = categoryName;
+    if (categoryName && categoryTitle && breadcrumbCategory) {
+        categoryTitle.innerText = categoryName;
+        breadcrumbCategory.innerText = categoryName;
     }
 
     if (sidebarContainer) {
-        fetch(`${CONFIG.API_BASE_URL}/api/category/`)
+        fetch(buildApiUrl('/api/category/'))
             .then(res => res.json())
             .then(data => {
                 sidebarContainer.innerHTML = '';
@@ -54,6 +56,10 @@ async function loadProducts(apiUrl) {
     const productContainer = document.getElementById('product-list');
     const template = document.getElementById('product-template');
 
+    if (!productContainer || !template) {
+        return;
+    }
+
     productContainer.innerHTML = `
         <div class="text-center w-100 py-5">
             <div class="spinner-border text-success"></div>
@@ -70,7 +76,9 @@ async function loadProducts(apiUrl) {
 
         productContainer.innerHTML = '';
 
-        if (data.length === 0) {
+        const results = Array.isArray(data?.results) ? data.results : [];
+
+        if (results.length === 0) {
             productContainer.innerHTML = `
                 <div class="col-12 text-center py-5">
                     <h5 class="text-muted">Không tìm thấy sản phẩm phù hợp.</h5>
@@ -78,12 +86,12 @@ async function loadProducts(apiUrl) {
             return;
         }
 
-        data.results.forEach(product => {
+        results.forEach(product => {
             const clone = template.content.cloneNode(true);
             const price = parseFloat(product.price);
             let imageUrl = 'img/bag-filled.png';
             if (product.images && product.images.length > 0) {
-                imageUrl = CONFIG.API_BASE_URL + product.images[0].image;
+                imageUrl = buildAssetUrl(product.images[0].image);
             }
             const quickViewBtn = clone.querySelector(".quick-view-btn");
             quickViewBtn.setAttribute("data-id", product.id);
@@ -94,9 +102,11 @@ async function loadProducts(apiUrl) {
             clone.querySelector('#product-name').textContent = product.name;
             clone.querySelector('#product-link-detail').href = `product-details.html?id=${product.id}`;
             clone.querySelector(".add-cart-btn").setAttribute("data-id", product.id);
+            clone.querySelector(".add-wish-btn").setAttribute("data-id", product.id);
             productContainer.appendChild(clone);
-            renderPagination(data);
-        })
+        });
+
+        renderPagination(data);
     } catch (error) {
         console.error(error);
         productContainer.innerHTML =
@@ -109,13 +119,13 @@ function applyFilters(page = 1) {
 
     currentPage = page;
 
-    const minPrice = document.querySelector('input[placeholder="From Vnd"]').value;
-    const maxPrice = document.querySelector('input[placeholder="To Vnd"]').value;
-    const sortValue = document.getElementById('sort-select').value;
+    const minPrice = document.querySelector('input[placeholder="From Vnd"]')?.value || "";
+    const maxPrice = document.querySelector('input[placeholder="To Vnd"]')?.value || "";
+    const sortValue = document.getElementById('sort-select')?.value || "";
     const urlParams = new URLSearchParams(window.location.search);
     const categoryId = urlParams.get('id');
 
-    let apiUrl = `${CONFIG.API_BASE_URL}/api/product/?page=${page}&`;
+    let apiUrl = buildApiUrl(`/api/product/?page=${page}&`);
 
     if (categoryId) apiUrl += `category_id=${categoryId}&`;
     if (minPrice) apiUrl += `min_price=${minPrice}&`;

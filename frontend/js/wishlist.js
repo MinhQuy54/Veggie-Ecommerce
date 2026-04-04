@@ -13,51 +13,65 @@ async function toggleWish(productId, buttonElement) {
 
     const token = localStorage.getItem("access_token");
     if (!token) {
-        alert("Bạn cần đăng nhập");
+        showMessage("warning", "Bạn cần đăng nhập");
         window.location.href = "./login.html";
         return;
     }
 
     const icon = buttonElement.querySelector("i");
 
-    const response = await fetchWithAuth(
-        `${CONFIG.API_BASE_URL}/api/wish/toggle/`,
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ product: productId })
+    try {
+        const response = await fetchWithStoredAuth(
+            buildApiUrl('/api/wish/toggle/'),
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ product: productId })
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            showMessage("error", getErrorMessage(data, "Không thể cập nhật danh sách yêu thích"));
+            return;
         }
-    );
 
-    const data = await response.json();
+        if (data.status === "added") {
 
-    if (data.status === "added") {
+            icon.classList.remove("fa-regular");
+            icon.classList.add("fa-solid");
 
-        icon.classList.remove("fa-regular");
-        icon.classList.add("fa-solid");
+            await updateSuccessWishModal(productId);
+            showSuccessWishModal();
 
-        await updateSuccessWishModal(productId);
-        showSuccessWishModal();
+        } else {
 
-    } else {
-
-        icon.classList.remove("fa-solid");
-        icon.classList.add("fa-regular");
+            icon.classList.remove("fa-solid");
+            icon.classList.add("fa-regular");
+        }
+    } catch (error) {
+        console.error(error);
+        showMessage("error", "Không thể cập nhật danh sách yêu thích");
     }
 }
 
 async function updateSuccessWishModal(productId) {
 
-    const response = await fetch(`${CONFIG.API_BASE_URL}/api/product/${productId}/`);
+    const response = await fetch(buildApiUrl(`/api/product/${productId}/`));
     const product = await response.json();
 
-    document.getElementById("success-wish-product-name").innerText = product.name;
+    const productName = document.getElementById("success-wish-product-name");
+    const productImg = document.getElementById("success-wish-product-img");
 
-    if (product.images && product.images.length > 0) {
-        document.getElementById("success-wish-product-img").src =
-            CONFIG.API_BASE_URL + product.images[0].image;
+    if (productName) {
+        productName.innerText = product.name;
+    }
+
+    if (productImg && product.images && product.images.length > 0) {
+        productImg.src = buildAssetUrl(product.images[0].image);
     }
 }
 
@@ -86,8 +100,8 @@ async function loadUserWishlist() {
     }
 
     try {
-        const response = await fetchWithAuth(
-            `${CONFIG.API_BASE_URL}/api/wish/`
+        const response = await fetchWithStoredAuth(
+            buildApiUrl('/api/wish/')
         );
 
         if (!response.ok) {

@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!keyword) return;
 
             try {
-                const res = await fetch(`${CONFIG.API_BASE_URL}/api/search/?q=${encodeURIComponent(keyword)}`);
+                const res = await fetch(buildApiUrl(`/api/search/?q=${encodeURIComponent(keyword)}`));
                 const data = await res.json();
 
                 renderProducts(data);
@@ -59,12 +59,23 @@ function renderProducts(products) {
 
     list.innerHTML = "";
 
-    products.results.forEach(product => {
+    const results = Array.isArray(products?.results) ? products.results : [];
+
+    if (results.length === 0) {
+        list.innerHTML = `
+            <div class="col-12 text-center py-5">
+                <h5 class="text-muted">Không tìm thấy sản phẩm phù hợp.</h5>
+            </div>
+        `;
+        return;
+    }
+
+    results.forEach(product => {
         const clone = template.content.cloneNode(true);
         const price = parseFloat(product.price);
         let imageUrl = 'img/bag-filled.png';
         if (product.images && product.images.length > 0) {
-            imageUrl = CONFIG.API_BASE_URL + product.images[0].image;
+            imageUrl = buildAssetUrl(product.images[0].image);
         }
         const quickViewBtn = clone.querySelector(".quick-view-btn");
         quickViewBtn.setAttribute("data-id", product.id);
@@ -75,8 +86,10 @@ function renderProducts(products) {
         clone.querySelector('#product-name').textContent = product.name;
         clone.querySelector('#product-link-detail').href = `product-details.html?id=${product.id}`;
         clone.querySelector(".add-cart-btn").setAttribute("data-id", product.id);
+        clone.querySelector(".add-wish-btn").setAttribute("data-id", product.id);
         list.appendChild(clone);
-        renderPagination(products);
     });
+
+    renderPagination(products);
 
 }

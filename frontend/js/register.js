@@ -1,31 +1,65 @@
-document.getElementById('registerForm').addEventListener("submit", async (e) => {
-    e.preventDefault();
+const registerForm = document.getElementById("registerForm");
 
-    const payload = {
-        fname: document.getElementById("fname").value,
-        lname: document.getElementById("lname").value,
-        email: document.getElementById("email").value,
-        password: document.getElementById("password").value,
-    };
+if (registerForm) {
+    registerForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
 
-    try {
-        const res = await fetch(`${CONFIG.API_BASE_URL}/api/auth/register/`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
+        const password = document.getElementById("password").value;
 
-        const data = await res.json();
+        const hasUpperCase = /[A-Z]/.test(password);
+        const hasLowerCase = /[a-z]/.test(password);
+        const hasNumber = /[0-9]/.test(password);
 
-        if (!res.ok) {
-            alert(data.error || "Đăng ký thất bại");
+        if (password.length < 6) {
+            showMessage("error", "Mật khẩu phải có ít nhất 6 ký tự!");
+            return;
+        }
+        if (!hasUpperCase || !hasLowerCase || !hasNumber) {
+            showMessage("warning", "Mật khẩu cần có chữ hoa, chữ thường và số!");
             return;
         }
 
-        alert("Đăng ký thành công!");
-        window.location.href = "login.html";
+        const payload = {
+            firstname: document.getElementById("firstname").value,
+            lastname: document.getElementById("lastname").value,
+            username: document.getElementById("username").value,
+            email: document.getElementById("email").value,
+            password: password
+        };
 
-    } catch (err) {
-        alert("Lỗi kết nối server");
-    }
-});
+        const hideLoading = showLoading('Đang xử lý đăng ký...');
+
+        try {
+            const res = await fetch(buildApiUrl('/api/auth/register/'), {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            hideLoading();
+
+            if (!res.ok) {
+                showMessage("error", getErrorMessage(data, "Đăng ký thất bại"));
+                return;
+            }
+
+            // THÔNG BÁO THÀNH CÔNG KIỂU ANT DESIGN
+            showNotification("success", {
+                message: 'Đăng ký thành công ',
+                description: 'Đăng nhập để tận hưởng nhé!',
+                placement: 'topRight',
+                duration: 6
+            });
+
+            setTimeout(() => {
+                window.location.href = "login.html";
+            }, 2000);
+
+        } catch (err) {
+            console.error(err);
+            hideLoading();
+            showMessage("error", "Lỗi kết nối server!");
+        }
+    });
+}

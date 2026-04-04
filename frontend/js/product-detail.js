@@ -9,7 +9,7 @@ async function loadProductDetail() {
     }
     currentProductId = productId;
     try {
-        const response = await fetch(`${CONFIG.API_BASE_URL}/api/product/${productId}/`);
+        const response = await fetch(buildApiUrl(`/api/product/${productId}/`));
 
         if (!response.ok) {
             throw new Error("Không tìm thấy sản phẩm");
@@ -27,7 +27,7 @@ async function loadProductDetail() {
 
         if (product.images && product.images.length > 0) {
             document.getElementById("product-img").src =
-                CONFIG.API_BASE_URL + product.images[0].image;
+                buildAssetUrl(product.images[0].image);
         }
 
         document.getElementById("breadcrumb-category").innerText = product.name;
@@ -63,7 +63,7 @@ document.addEventListener("click", async function (e) {
 
         currentProductId = productId;
         try {
-            const response = await fetch(`${CONFIG.API_BASE_URL}/api/product/${productId}/`);
+            const response = await fetch(buildApiUrl(`/api/product/${productId}/`));
 
             if (!response.ok) {
                 throw new Error("Không tìm thấy sản phẩm");
@@ -86,7 +86,7 @@ document.addEventListener("click", async function (e) {
 
             if (product.images && product.images.length > 0) {
                 document.getElementById("modal-product-img").src =
-                    CONFIG.API_BASE_URL + product.images[0].image;
+                    buildAssetUrl(product.images[0].image);
             }
 
             const stockStatus = document.querySelector(".stock-status");
@@ -131,14 +131,18 @@ function showSuccessModal() {
 
 async function updateSuccessModalFromCard(productId) {
 
-    const response = await fetch(`${CONFIG.API_BASE_URL}/api/product/${productId}/`);
+    const response = await fetch(buildApiUrl(`/api/product/${productId}/`));
     const product = await response.json();
 
-    document.getElementById("success-product-name").innerText = product.name;
+    const productName = document.getElementById("success-product-name");
+    const productImg = document.getElementById("success-product-img");
 
-    if (product.images && product.images.length > 0) {
-        document.getElementById("success-product-img").src =
-            CONFIG.API_BASE_URL + product.images[0].image;
+    if (productName) {
+        productName.innerText = product.name;
+    }
+
+    if (productImg && product.images && product.images.length > 0) {
+        productImg.src = buildAssetUrl(product.images[0].image);
     }
 }
 
@@ -173,18 +177,18 @@ async function addToCart(productId = null) {
     let stockToCheck = currentStock;
 
     if (!currentStock || productId !== currentProductId) {
-        const res = await fetch(`${CONFIG.API_BASE_URL}/api/product/${productId}/`);
+        const res = await fetch(buildApiUrl(`/api/product/${productId}/`));
         const product = await res.json();
         stockToCheck = product.stock;
     }
 
     if (stockToCheck < 1) {
-        alert("Sản phẩm đã hết hàng");
+        showMessage("warning", "Sản phẩm đã hết hàng");
         return;
     }
 
     if (quantity > stockToCheck) {
-        alert("Số lượng vượt quá tồn kho");
+        showMessage("warning", "Số lượng vượt quá tồn kho");
         return;
     }
     const token = localStorage.getItem("access_token");
@@ -215,7 +219,7 @@ async function addToCart(productId = null) {
 
     try {
 
-        const response = await fetchWithAuth(`${CONFIG.API_BASE_URL}/api/cart/`, {
+        const response = await fetchWithStoredAuth(buildApiUrl('/api/cart/'), {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -229,7 +233,7 @@ async function addToCart(productId = null) {
         const data = await response.json();
 
         if (!response.ok) {
-            alert(data.error || "Không thể thêm vào giỏ");
+            showMessage("error", getErrorMessage(data, "Không thể thêm vào giỏ"));
             return;
         }
 
@@ -241,4 +245,3 @@ async function addToCart(productId = null) {
     }
 }
 window.addEventListener("DOMContentLoaded", loadProductDetail);
-
