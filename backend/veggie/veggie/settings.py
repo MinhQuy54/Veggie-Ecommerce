@@ -77,9 +77,9 @@ DATABASES = {
         'HOST': env('DB_HOST', default='127.0.0.1'),
         'PORT': env('DB_PORT', default='3306'),
         'OPTIONS': {
-            # 'ssl': {
-            #     'ca': '/etc/ssl/certs/ca-certificates.crt' if IS_RENDER else '/etc/ssl/cert.pem',
-            # },
+            'ssl': {
+                'ca': '/etc/ssl/certs/ca-certificates.crt' if IS_RENDER else '/etc/ssl/cert.pem',
+            },
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         }
    }
@@ -167,25 +167,25 @@ CACHES = {
     }
 }
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
+# REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
 
-if importlib.util.find_spec("django_redis") and REDIS_URL:
-    CACHES = {
-        "default": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": REDIS_URL,
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            }
-        }
-    }
-else:
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-            "LOCATION": "veggie-local-cache",
-        }
-    }
+# if importlib.util.find_spec("django_redis") and REDIS_URL:
+#     CACHES = {
+#         "default": {
+#             "BACKEND": "django_redis.cache.RedisCache",
+#             "LOCATION": REDIS_URL,
+#             "OPTIONS": {
+#                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
+#             }
+#         }
+#     }
+# else:
+#     CACHES = {
+#         "default": {
+#             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+#             "LOCATION": "veggie-local-cache",
+#         }
+#     }
 
 
 

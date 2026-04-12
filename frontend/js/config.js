@@ -1,9 +1,9 @@
 const CONFIG = {
-    API_BASE_URL: 'http://localhost:8080',
-    CHATBOT_API_BASE_URL: 'http://localhost:8080/api/chat',
+    // API_BASE_URL: 'http://localhost:8080',
+    // CHATBOT_API_BASE_URL: 'http://localhost:8080/api/chat',
     // API_BASE_URL: 'http://127.0.0.1:8000',
-    // API_BASE_URL: 'https://veggie-ecommerce-1.onrender.com',
-    // CHATBOT_API_BASE_URL: 'https://your-chatbot-service.onrender.com',
+    API_BASE_URL: 'https://veggie-ecommerce-1.onrender.com',
+    CHATBOT_API_BASE_URL: 'https://veggie-ecommerce-chatbot.onrender.com',
     PAGE_SIZE: 6
 };
 
