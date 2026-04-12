@@ -4,20 +4,24 @@
     </div>
 
     <div class="chat-box shadow-lg d-none" id="chat-box">
-        <div class="chat-box-header bg-success text-white d-flex justify-content-between align-items-center p-3">
-            <h6 class="m-0"><i class="fa-solid fa-leaf me-2"></i>Veggie Support</h6>
+        <div class="chat-box-header bg-success text-white d-flex justify-content-between align-items-center p-3"
+            style=" background-color: var(--primary-green);">
+            <h6 class="m-0 text-white"><i class="fa-solid fa-leaf me-2"></i>Veggie Support</h6>
             <span id="chat-box-toggle" style="cursor:pointer;"><i class="fa-solid fa-xmark"></i></span>
         </div>
         <div class="chat-box-body p-3" id="chat-content">
-            <div class="msg-bot mb-2">
-                <small class="bg-light p-2 rounded d-inline-block">Chào bạn! Veggie có thể giúp gì cho bạn
-                    không?</small>
+            <div class="msg-bot">
+                <div class="chat-bubble">
+                    Chào bạn! Veggie có thể giúp gì cho bạn hôm nay?
+                </div>
             </div>
         </div>
         <div class="chat-input border-top p-2 d-flex">
             <input type="text" id="chat-input-text" class="form-control form-control-sm me-2"
-                placeholder="Nhập tin nhắn...">
-            <button class="btn btn-success btn-sm" id="chat-submit"><i class="fa-solid fa-paper-plane"></i></button>
+                placeholder="Hỏi về sản phẩm hoặc chính sách..." autocomplete="off">
+            <button class="btn btn-success btn-sm" id="chat-submit" type="button" aria-label="Gửi tin nhắn">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
         </div>
     </div>
 </div>

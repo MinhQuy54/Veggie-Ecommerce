@@ -1,7 +1,9 @@
 const CONFIG = {
-    // API_BASE_URL: 'http://localhost:8080',
+    API_BASE_URL: 'http://localhost:8080',
+    CHATBOT_API_BASE_URL: 'http://localhost:8080/api/chat',
     // API_BASE_URL: 'http://127.0.0.1:8000',
-    API_BASE_URL: 'https://veggie-ecommerce-1.onrender.com',
+    // API_BASE_URL: 'https://veggie-ecommerce-1.onrender.com',
+    // CHATBOT_API_BASE_URL: 'https://your-chatbot-service.onrender.com',
     PAGE_SIZE: 6
 };
 
@@ -18,6 +20,21 @@ function buildApiUrl(path = "") {
 
     const normalizedPath = path.startsWith("/") ? path : `/${path}`;
     return `${CONFIG.API_BASE_URL}${normalizedPath}`;
+}
+
+function buildChatbotUrl(path = "") {
+    const baseUrl = CONFIG.CHATBOT_API_BASE_URL || CONFIG.API_BASE_URL;
+
+    if (!path) {
+        return baseUrl;
+    }
+
+    if (/^https?:\/\//i.test(path)) {
+        return path;
+    }
+
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    return `${baseUrl}${normalizedPath}`;
 }
 
 function buildAssetUrl(path = "") {
