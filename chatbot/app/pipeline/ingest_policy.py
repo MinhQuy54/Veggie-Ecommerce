@@ -1,26 +1,30 @@
 from ctypes import pointer
 import os, pdfplumber
 from dotenv import load_dotenv
+from google import genai
 from qdrant_client import QdrantClient
 from qdrant_client.http import models
-from sentence_transformers import SentenceTransformer
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from app.embeddings import embed_texts
 
 load_dotenv()
 
 
 PDF_PATH = 'app/data/veggie_policy.pdf'
 COLLECTION_NAME = "veggie_products"
+API_KEY = os.getenv("API_KEY")
 QDRANT_URL = os.getenv("QDRANT_URL")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 COLLECTION_NAME = os.getenv("QDRANT_COLLECTION_NAME", COLLECTION_NAME)
 
+if not API_KEY:
+    raise ValueError("Không tìm thấy API_KEY")
 if not QDRANT_URL:
     raise ValueError("Không tìm thấy QDRANT_URL")
 if not QDRANT_API_KEY:
     raise ValueError("Không tìm thấy QDRANT_API_KEY")
 
-model = SentenceTransformer("all-MiniLM-L6-v2")
+genai_client = genai.Client(api_key=API_KEY)
 client = QdrantClient(
     url=QDRANT_URL,
     api_key=QDRANT_API_KEY,
@@ -45,9 +49,9 @@ def ingest_policy():
     print(f"Đã chia thành {len(chunks)} doan nho.")
 
     points = []
+    embeddings = embed_texts(genai_client, chunks, "RETRIEVAL_DOCUMENT")
 
-    for i, chunk in enumerate(chunks):
-        vector = model.encode(chunk).tolist()
+    for i, (chunk, vector) in enumerate(zip(chunks, embeddings)):
         points.append(models.PointStruct(
             id= i + 1000,
             vector=vector,

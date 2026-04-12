@@ -4,9 +4,9 @@ from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
-from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 from google import genai
+from app.embeddings import embed_text
 
 load_dotenv()
 api_key = os.getenv("API_KEY")
@@ -22,8 +22,6 @@ if not qdrant_api_key:
     raise ValueError("Chưa tìm thấy QDRANT_API_KEY trong file .env!")
 
 client = genai.Client(api_key=api_key)
-
-embed_model = SentenceTransformer('all-MiniLM-L6-v2')
 qdrant_client = QdrantClient(
     url=qdrant_url,
     api_key=qdrant_api_key,
@@ -108,7 +106,12 @@ async def chat_with_veggie(request : ChatRequest):
     user_query = request.message
     logger.info("Đang xử lý câu hỏi: %s", user_query)
     try:
-        query_vector = embed_model.encode(user_query).tolist()
+        query_vector = await asyncio.to_thread(
+            embed_text,
+            client,
+            user_query,
+            "QUESTION_ANSWERING",
+        )
         chat_results = qdrant_client.query_points(
             collection_name = collection_name,
             query = query_vector,
